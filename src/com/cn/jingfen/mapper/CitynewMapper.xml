@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cn.jingfen.mapper.CitynewMapper">
+
+<select id="selectAreaData" resultType="AreaData" >
+	select EPARCHY_NAME name,
+	       EPARCHY_ID code       
+	 from dwpdata.vw_eparchy_city_rept 
+	 where EPARCHY_ID not in('A1','A2','00') 
+</select>
+
+<select id="selectCityData" resultType="CityData" parameterType="java.util.Map">
+	select  CITY_CODE_NEW code,
+			CITY_NAME name
+			
+	from 
+			dwpdata.vw_citycode_rept 
+	where 
+			EPARCHY_ID not in('A1','A2','00')
+	and
+			
+			EPARCHY_ID_NEW = #{codecity}
+</select>
+
+
+
+<select id="selectCityData1" resultType="CityData" parameterType="java.lang.String">
+	select  CITY_CODE_NEW code,
+			CITY_NAME name
+			
+	from 
+			dwpdata.vw_citycode_rept 
+	where 
+			EPARCHY_ID not in('A1','A2','00')
+	and
+			
+			EPARCHY_ID_NEW = #{string}
+</select>
+<select id="selectProvinceData" resultType="ProvinceData" parameterType="java.util.Map">
+	select  
+			GRID_SECTION_NAME name,
+			GRID_SECTION_CODE code
+	from dwpmart.td_grid_section
+	where CITY_CODE =#{codepro}
+</select>
+</mapper>

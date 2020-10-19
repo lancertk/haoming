@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace的值为mapper接口的全路径 -->
+<mapper namespace="com.cn.jingfen.mapper.GridMapper">
+
+<!-- 查询分类-->
+<select id="selctGridType" resultType="String">
+SELECT CLASSTYPE FROM PORTAL.GRIDTREE1 group by CLASSTYPE 
+</select>
+
+<!-- 查询所有分类信息@@@2 -->
+<select id="selectAllGrid" resultType="Grid">
+SELECT * FROM PORTAL.GRIDTREE1 order by CLASSTYPE, ORDERNUM
+</select>
+
+<!-- 查询更新时间 -->
+<select id="selctrefreshtime" resultType="java.lang.String" parameterType="java.util.Map">
+
+	select min(last_run_date) refresh_date
+	from dwetl.td_portal_config_callpd_wg a,dwpmart.td_func_proc_vertica b
+	where upper(a.only_unit_code) =upper(b.proc_name)
+	and b.func_id = #{func_id}
+	and last_run_date &lt; to_char ( sysdate, 'yyyymmdd') group by func_id
+
+</select>
+
+<!-- 查询所有分类信息 -->
+<select id="selctGridtest1" resultType="Kdgrid1" parameterType="java.util.Map">
+select a.eparchy_name value2,a.eparchy_id value1,v01 value3,v02 value4,v03 value5,v04 value6,v05 value7 from
+(
+select
+  m.eparchy_name,m.eparchy_id,m.mms_order_id
+, COALESCE(a.VALUES01,0)      v01
+, COALESCE(a.VALUES02,0)      v02
+, COALESCE(a.VALUES03,0)      v03
+, COALESCE(a.VALUES04,0)      v04
+, COALESCE(a.VALUES05,0)      v05
+from
+(
+ select 
+   mx.eparchy_id as eparchy_id,
+   sum(cast(a.base_value01 as integer)) VALUES01,
+   sum(cast(a.base_value02 as integer)) VALUES02,
+   sum(cast(a.base_value03 as integer)) VALUES03,
+               cast((case
+                      when sum(a.base_value03) &lt;&gt; 0 then
+                       sum(a.base_value02) * 1.0000 / sum(a.base_value03) - 1
+                      else
+                       0
+                    end) * 100 as dec(8, 2)) VALUES04,
+               cast((case
+                      when sum(a.base_value01) +
+                           sum(a.base_value04 + a.base_value06) / 0.93 &lt;&gt; 0 then
+                       sum(a.base_value01) * 1.0000 /
+                       (sum(a.base_value01) +
+                        sum(a.base_value04 + a.base_value06) / 0.93)
+                      else
+                       1
+                    end) * 100 as dec(8, 2)) VALUES05
+ from
+ dwpmart.tf_fact_grid_markt_calluser_day a
+ left outer join dwpdata.vw_citycode_rept mx on a.city_code = mx.city_code and mx.rept_290_tag = '1' and mms_order_id &lt;&gt; 'ZZ'
+ where A.stat_date = #{datetime}
+ group by mx.eparchy_id )a
+ right outer join
+ dwpdata.vw_eparchy_city_rept m on a.eparchy_id = m.eparchy_id where m.eparchy_code &lt;&gt; '290'
+)a order by mms_order_id
+
+</select>
+<select id="selctGridtest2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+  m.city_name value2,
+  m.city_code value1,
+  COALESCE(a.VALUES01,0)      value3,
+  COALESCE(a.VALUES02,0)      value4,
+  COALESCE(a.VALUES03,0)      value5,
+  COALESCE(a.VALUES04,0)      value6,
+  COALESCE(a.VALUES05,0)      value7
+from
+(
+ select 
+   mx.city_code_new as city_code_new,
+   sum(cast(a.base_value01 as integer)) VALUES01,
+   sum(cast(a.base_value02 as integer)) VALUES02,
+   sum(cast(a.base_value03 as integer)) VALUES03,
+               cast((case
+                      when sum(a.base_value03) &lt;&gt; 0 then
+                       sum(a.base_value02) * 1.0000 / sum(a.base_value03) - 1
+                      else
+                       0
+                    end) * 100 as dec(8, 2)) VALUES04,
+               cast((case
+                      when sum(a.base_value01) +
+                           sum(a.base_value04 + a.base_value06) / 0.93 &lt;&gt; 0 then
+                       sum(a.base_value01) * 1.0000 /
+                       (sum(a.base_value01) +
+                        sum(a.base_value04 + a.base_value06) / 0.93)
+                      else
+                       1
+                    end) * 100 as dec(8, 2)) VALUES05
+ from
+ dwpmart.tf_fact_grid_markt_calluser_day a
+ left outer join dwpdata.vw_citycode_rept mx on a.city_code = mx.city_code
+ where a.stat_date = #{datetime} 
+  and mx.eparchy_id_new = #{unitcode}
+ group by mx.city_code_new , mx.city_name
+)a
+right outer join
+(select distinct city_code_new,city_code,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode})m on a.city_code_new = m.city_code_new where mms_order_id &lt;&gt; 'ZZ'
+order by m.mms_order_id
+</select>
+
+<select id="selctGridtest3" resultType="Kdgrid1" parameterType="java.util.Map">
+
+select
+  m.grid_section_name value2,
+  m.grid_section_code value1
+, COALESCE(a.VALUES01,0)      value3
+, COALESCE(a.VALUES02,0)      value4
+, COALESCE(a.VALUES03,0)      value5
+, COALESCE(a.VALUES04,0)      value6
+, COALESCE(a.VALUES05,0)      value7
+from
+(
+ select 
+   mx.grid_section_code as grid_section_code,
+   sum(cast(a.base_value01 as integer)) VALUES01,
+   sum(cast(a.base_value02 as integer)) VALUES02,
+   sum(cast(a.base_value03 as integer)) VALUES03,
+               cast((case
+                      when sum(a.base_value03) &lt;&gt; 0 then
+                       sum(a.base_value02) * 1.0000 / sum(a.base_value03) - 1
+                      else
+                       0
+                    end) * 100 as dec(8, 2)) VALUES04,
+               cast((case
+                      when sum(a.base_value01) +
+                           sum(a.base_value04 + a.base_value06) / 0.93 &lt;&gt; 0 then
+                       sum(a.base_value01) * 1.0000 /
+                       (sum(a.base_value01) +
+                        sum(a.base_value04 + a.base_value06) / 0.93)
+                      else
+                       1
+                    end) * 100 as dec(8, 2)) VALUES05
+ from
+ dwpmart.tf_fact_grid_markt_calluser_day a
+ left outer join dwpdata.td_grid_section mx on a.grid_section_code = mx.grid_section_code
+ where a.stat_date = #{datetime} 
+  and mx.city_code = #{unitcode} 
+ group by mx.grid_section_code 
+)a
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = #{unitcode})m on a.grid_section_code = m.grid_section_code 
+order by m.grid_section_code
+</select>
+
+<select id="selctGridtest4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+  m.grid_name value2,
+  m.grid_code value1
+, COALESCE(a.VALUES01,0)      value3
+, COALESCE(a.VALUES02,0)      value4
+, COALESCE(a.VALUES03,0)      value5
+, COALESCE(a.VALUES04,0)      value6
+, COALESCE(a.VALUES05,0)      value7
+from
+(
+ select 
+   mx.grid_code as grid_code,
+   sum(cast(a.base_value01 as integer)) VALUES01,
+   sum(cast(a.base_value02 as integer)) VALUES02,
+   sum(cast(a.base_value03 as integer)) VALUES03,
+               cast((case
+                      when sum(a.base_value03) &lt;&gt; 0 then
+                       sum(a.base_value02) * 1.0000 / sum(a.base_value03) - 1
+                      else
+                       0
+                    end) * 100 as dec(8, 2)) VALUES04,
+               cast((case
+                      when sum(a.base_value01) +
+                           sum(a.base_value04 + a.base_value06) / 0.93 &lt;&gt; 0 then
+                       sum(a.base_value01) * 1.0000 /
+                       (sum(a.base_value01) +
+                        sum(a.base_value04 + a.base_value06) / 0.93)
+                      else
+                       1
+                    end) * 100 as dec(8, 2)) VALUES05
+ from
+ dwpmart.tf_fact_grid_markt_calluser_day a
+ left outer join dwpdata.td_grid mx on a.grid_code = mx.grid_code
+ where a.stat_date = #{datetime} 
+  and mx.grid_section_code = #{unitcode}
+ group by mx.grid_code 
+)a
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode})m on a.grid_code = m.grid_code 
+order by m.grid_code
+</select>
+
+</mapper>

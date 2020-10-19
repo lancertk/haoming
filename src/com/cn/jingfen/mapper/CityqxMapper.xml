@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace的值为mapper接口的全路径 -->
+<mapper namespace="com.cn.jingfen.mapper.CityqxMapper">
+
+<select id="selectArea" resultType="AreaData">
+	select EPARCHY_NAME name,
+	       EPARCHY_ID code       
+	 from dwpdata.vw_eparchy_city_rept 
+	 where EPARCHY_ID not in('A1','A2','00') 
+</select>
+
+<select id="selectCity" resultType="CityData">
+	select  CITY_CODE_NEW code,
+			CITY_NAME name,
+			EPARCHY_ID_NEW pid
+			
+	from 
+			dwpdata.vw_citycode_rept 
+	where 
+			EPARCHY_ID not in('A1','A2','00')
+</select>
+<select id="selectProvince" resultType="ProvinceData">
+	select  CITY_CODE pid,
+			GRID_SECTION_NAME name,
+			GRID_SECTION_CODE code
+	from dwpmart.td_grid_section
+</select>
+</mapper>

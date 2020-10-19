@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace的值为mapper接口的全路径 -->
+<mapper namespace="com.cn.jingfen.mapper.GridqdMapper">
+
+
+<!-- 家庭业务发展日报 (渠道级)-->
+<select id="selctqd1Grid1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value02,0)-coalesce(b.value03,0) value5,
+coalesce(b.value04,0) value6,
+coalesce(b.value05,0) value7,
+coalesce(b.value06,0)- coalesce(b.value05,0) value8
+from
+(select
+mx.EPARCHY_ID,
+sum(case when cell_id = '003' then value01 else 0 end) as value01,
+sum(case when cell_id = '003' then value02 else 0 end) as value02,
+sum(case when cell_id = '003' then value03 else 0 end) as value03,
+sum(case when cell_id = '003' then value04 else 0 end) as value04,
+sum(case when cell_id = '003' then value05 else 0 end) as value05,
+sum(case when cell_id = '003' then value06 else 0 end) as value06
+from dnapp.tf_fact_gird_channel_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('003')
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+</select>
+<select id="selctqd1Grid2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value02,0)-coalesce(b.value03,0) value5,
+coalesce(b.value04,0) value6,
+coalesce(b.value05,0) value7,
+coalesce(b.value06,0)- coalesce(b.value05,0) value8
+from
+(select
+mx.city_code_new,
+sum(case when cell_id = '003' then value01 else 0 end) as value01,
+sum(case when cell_id = '003' then value02 else 0 end) as value02,
+sum(case when cell_id = '003' then value03 else 0 end) as value03,
+sum(case when cell_id = '003' then value04 else 0 end) as value04,
+sum(case when cell_id = '003' then value05 else 0 end) as value05,
+sum(case when cell_id = '003' then value06 else 0 end) as value06
+from dnapp.tf_fact_gird_channel_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('003')
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctqd1Grid3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value02,0)-coalesce(b.value03,0) value5,
+coalesce(b.value04,0) value6,
+coalesce(b.value05,0) value7,
+coalesce(b.value06,0)- coalesce(b.value05,0) value8
+from
+(select
+mx.grid_section_code,
+sum(case when cell_id = '003' then value01 else 0 end) as value01,
+sum(case when cell_id = '003' then value02 else 0 end) as value02,
+sum(case when cell_id = '003' then value03 else 0 end) as value03,
+sum(case when cell_id = '003' then value04 else 0 end) as value04,
+sum(case when cell_id = '003' then value05 else 0 end) as value05,
+sum(case when cell_id = '003' then value06 else 0 end) as value06
+from dnapp.tf_fact_gird_channel_01_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('003')
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code 
+</select>
+<select id="selctqd1Grid4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value02,0)-coalesce(b.value03,0) value5,
+coalesce(b.value04,0) value6,
+coalesce(b.value05,0) value7,
+coalesce(b.value06,0)- coalesce(b.value05,0) value8
+from
+(select
+mx.grid_code,
+sum(case when cell_id = '003' then value01 else 0 end) as value01,
+sum(case when cell_id = '003' then value02 else 0 end) as value02,
+sum(case when cell_id = '003' then value03 else 0 end) as value03,
+sum(case when cell_id = '003' then value04 else 0 end) as value04,
+sum(case when cell_id = '003' then value05 else 0 end) as value05,
+sum(case when cell_id = '003' then value06 else 0 end) as value06
+from dnapp.tf_fact_gird_channel_01_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('003')
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<select id="selctqd1Grid5" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.GRID_CHANNL_ID value1,
+m.GRID_CHANNL_NAME value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value02,0)-coalesce(b.value03,0) value5,
+coalesce(b.value04,0) value6,
+coalesce(b.value05,0) value7,
+coalesce(b.value06,0)- coalesce(b.value05,0) value8
+from
+(select
+mx.GRID_CHANNL_ID,
+sum(case when cell_id = '003' then value01 else 0 end) as value01,
+sum(case when cell_id = '003' then value02 else 0 end) as value02,
+sum(case when cell_id = '003' then value03 else 0 end) as value03,
+sum(case when cell_id = '003' then value04 else 0 end) as value04,
+sum(case when cell_id = '003' then value05 else 0 end) as value05,
+sum(case when cell_id = '003' then value06 else 0 end) as value06
+from dnapp.tf_fact_gird_channel_01_day a
+left outer join
+dwpmart.td_grid_channl mx
+on a.GRID_CHANNL_ID = mx.GRID_CHANNL_ID
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('003')
+group by mx.GRID_CHANNL_ID
+) b
+right outer join
+(select distinct GRID_CHANNL_ID,GRID_CHANNL_NAME from dwpmart.td_grid_channl where GRID_CODE = #{unitcode}) m
+on b.GRID_CHANNL_ID = m.GRID_CHANNL_ID 
+</select>
+
+<!-- 客户新发展日报(渠道级) -->
+<select id="selctqd2Grid1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value02,0)- coalesce(b.value03,0) value5,
+coalesce(b.value04,0) value6
+from
+(select
+mx.EPARCHY_ID,
+sum(case when cell_id = '001' then value01 else 0 end) as value01,
+sum(case when cell_id = '001' then value02 else 0 end) as value02,
+sum(case when cell_id = '001' then value03 else 0 end) as value03,
+sum(case when cell_id = '001' then value04 else 0 end) as value04
+from dnapp.tf_fact_gird_channel_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('001')
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+</select>
+<select id="selctqd2Grid2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value02,0)- coalesce(b.value03,0) value5,
+coalesce(b.value04,0) value6
+from
+(select
+mx.city_code_new,
+sum(case when cell_id = '001' then value01 else 0 end) as value01,
+sum(case when cell_id = '001' then value02 else 0 end) as value02,
+sum(case when cell_id = '001' then value03 else 0 end) as value03,
+sum(case when cell_id = '001' then value04 else 0 end) as value04
+from dnapp.tf_fact_gird_channel_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('001')
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctqd2Grid3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value02,0)- coalesce(b.value03,0) value5,
+coalesce(b.value04,0) value6
+from
+(select
+mx.grid_section_code,
+sum(case when cell_id = '001' then value01 else 0 end) as value01,
+sum(case when cell_id = '001' then value02 else 0 end) as value02,
+sum(case when cell_id = '001' then value03 else 0 end) as value03,
+sum(case when cell_id = '001' then value04 else 0 end) as value04
+from dnapp.tf_fact_gird_channel_01_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('001')
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code 
+</select>
+<select id="selctqd2Grid4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value02,0)- coalesce(b.value03,0) value5,
+coalesce(b.value04,0) value6
+from
+(select
+mx.grid_code,
+sum(case when cell_id = '001' then value01 else 0 end) as value01,
+sum(case when cell_id = '001' then value02 else 0 end) as value02,
+sum(case when cell_id = '001' then value03 else 0 end) as value03,
+sum(case when cell_id = '001' then value04 else 0 end) as value04
+from dnapp.tf_fact_gird_channel_01_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('001')
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<select id="selctqd2Grid5" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.GRID_CHANNL_ID value1,
+m.GRID_CHANNL_NAME value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value02,0)- coalesce(b.value03,0) value5,
+coalesce(b.value04,0) value6
+from
+(select
+mx.GRID_CHANNL_ID,
+sum(case when cell_id = '001' then value01 else 0 end) as value01,
+sum(case when cell_id = '001' then value02 else 0 end) as value02,
+sum(case when cell_id = '001' then value03 else 0 end) as value03,
+sum(case when cell_id = '001' then value04 else 0 end) as value04
+from dnapp.tf_fact_gird_channel_01_day a
+left outer join
+dwpmart.td_grid_channl mx
+on a.GRID_CHANNL_ID = mx.GRID_CHANNL_ID
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('001')
+group by mx.GRID_CHANNL_ID
+) b
+right outer join
+(select distinct GRID_CHANNL_ID,GRID_CHANNL_NAME from dwpmart.td_grid_channl where GRID_CODE = #{unitcode}) m
+on b.GRID_CHANNL_ID = m.GRID_CHANNL_ID 
+</select>
+
+<!-- 家庭V网发展日报(渠道级) -->
+<select id="selctqd3Grid1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value02,0)- coalesce(b.value03,0) value5,
+coalesce(b.value04,0) value6
+from
+(select
+mx.EPARCHY_ID,
+sum(case when cell_id = '002' then value01 else 0 end) as value01,
+sum(case when cell_id = '002' then value02 else 0 end) as value02,
+sum(case when cell_id = '002' then value03 else 0 end) as value03,
+sum(case when cell_id = '002' then value04 else 0 end) as value04
+from dnapp.tf_fact_gird_channel_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('002')
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+</select>
+<select id="selctqd3Grid2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value02,0)- coalesce(b.value03,0) value5,
+coalesce(b.value04,0) value6
+from
+(select
+mx.city_code_new,
+sum(case when cell_id = '002' then value01 else 0 end) as value01,
+sum(case when cell_id = '002' then value02 else 0 end) as value02,
+sum(case when cell_id = '002' then value03 else 0 end) as value03,
+sum(case when cell_id = '002' then value04 else 0 end) as value04
+from dnapp.tf_fact_gird_channel_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('002')
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctqd3Grid3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value02,0)- coalesce(b.value03,0) value5,
+coalesce(b.value04,0) value6
+from
+(select
+mx.grid_section_code,
+sum(case when cell_id = '002' then value01 else 0 end) as value01,
+sum(case when cell_id = '002' then value02 else 0 end) as value02,
+sum(case when cell_id = '002' then value03 else 0 end) as value03,
+sum(case when cell_id = '002' then value04 else 0 end) as value04
+from dnapp.tf_fact_gird_channel_01_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('002')
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code 
+</select>
+
+<select id="selctqd3Grid4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value02,0)- coalesce(b.value03,0) value5,
+coalesce(b.value04,0) value6
+from
+(select
+mx.grid_code,
+sum(case when cell_id = '002' then value01 else 0 end) as value01,
+sum(case when cell_id = '002' then value02 else 0 end) as value02,
+sum(case when cell_id = '002' then value03 else 0 end) as value03,
+sum(case when cell_id = '002' then value04 else 0 end) as value04
+from dnapp.tf_fact_gird_channel_01_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('002')
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<select id="selctqd3Grid5" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.GRID_CHANNL_ID value1,
+m.GRID_CHANNL_NAME value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value02,0)- coalesce(b.value03,0) value5,
+coalesce(b.value04,0) value6
+from
+(select
+mx.GRID_CHANNL_ID,
+sum(case when cell_id = '002' then value01 else 0 end) as value01,
+sum(case when cell_id = '002' then value02 else 0 end) as value02,
+sum(case when cell_id = '002' then value03 else 0 end) as value03,
+sum(case when cell_id = '002' then value04 else 0 end) as value04
+from dnapp.tf_fact_gird_channel_01_day a
+left outer join
+dwpmart.td_grid_channl mx
+on a.GRID_CHANNL_ID = mx.GRID_CHANNL_ID
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('002')
+group by mx.GRID_CHANNL_ID
+) b
+right outer join
+(select distinct GRID_CHANNL_ID,GRID_CHANNL_NAME from dwpmart.td_grid_channl where GRID_CODE = #{unitcode}) m
+on b.GRID_CHANNL_ID = m.GRID_CHANNL_ID 
+</select>
+
+
+
+</mapper>

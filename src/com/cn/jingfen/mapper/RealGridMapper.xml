@@ -1,0 +1,3464 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace的值为mapper接口的全路径 -->
+<mapper namespace="com.cn.jingfen.mapper.RealGridMapper">
+
+<!-- 4G客户净增日报(仿照） -->
+
+<select id="selectGrid4infoo1" resultType="Kdgrid1" parameterType="java.util.Map">
+  select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value01-b.value03,0) value4,
+coalesce(b.value01-b.value02,0) value5,
+coalesce(b.value06,0) value6
+
+from
+(select
+mx.EPARCHY_ID,
+sum(a.value01) as value01,
+sum(a.value02) as value02,
+sum(a.value03) as value03,
+sum(a.value05) as value05,
+sum(a.value06) as value06,
+sum(a.value07) as value07
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date =  #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '002'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID 
+order by m.mms_order_id
+</select>
+
+<select id="selectGrid4infoo2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value01-b.value03,0) value4,
+coalesce(b.value01-b.value02,0) value5,
+coalesce(b.value06,0) value6
+from
+(select
+mx.city_code_new,
+sum(a.value01) as value01,
+sum(a.value02) as value02,
+sum(a.value03) as value03,
+sum(a.value05) as value05,
+sum(a.value06) as value06,
+sum(a.value07) as value07
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '002'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new 
+order by m.mms_order_id
+</select>
+
+<select id="selectGrid4infoo3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value01-b.value03,0) value4,
+coalesce(b.value01-b.value02,0) value5,
+coalesce(b.value06,0) value6
+from
+(select
+mx.grid_section_code,
+sum(a.value01) as value01,
+sum(a.value02) as value02,
+sum(a.value03) as value03,
+sum(a.value05) as value05,
+sum(a.value06) as value06,
+sum(a.value07) as value07
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '002'
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m 
+on b.grid_section_code = m.grid_section_code 
+</select>
+
+<select id="selectGrid4infoo4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value01-b.value03,0) value4,
+coalesce(b.value01-b.value02,0) value5,
+coalesce(b.value06,0) value6
+from
+(select
+mx.grid_code,
+sum(a.value01) as value01,
+sum(a.value02) as value02,
+sum(a.value03) as value03,
+sum(a.value05) as value05,
+sum(a.value06) as value06,
+sum(a.value07) as value07
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '002'
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<!-- 账务收入日报 -->
+<select id="selctGridtest1" resultType="Kdgrid1" parameterType="java.util.Map">
+select a.eparchy_id value1,a.eparchy_name value2,v01 value3,v02 value4 ,v03 value5,v04 value6,v05 value7,v06 value8 from
+(
+select
+  m.eparchy_name,m.mms_order_id,m.eparchy_id
+, COALESCE(a.VALUES01,0)/100      v01
+, COALESCE(a.VALUES02,0)/100      v02
+, to_char(case when a.VALUES03 &lt;&gt; 0 then (COALESCE(a.VALUES02,0)-a.VALUES03)*1.00*100/a.VALUES03 else 0 end) ||'%' v03
+, to_char(case when a.VALUES04 &lt;&gt; 0 then (COALESCE(a.VALUES02,0)-a.VALUES04)*1.00*100/a.VALUES04 else 0 end) ||'%' v04
+, COALESCE(a.VALUES05,0)/100      v05
+, to_char(case when a.VALUES06 &lt;&gt; 0 then (COALESCE(a.VALUES05,0)-a.VALUES06)*1.00*100/a.VALUES06 else 0 end) ||'%' v06
+from
+(
+ select 
+   mx.eparchy_id as eparchy_id,
+   sum(case when cell_id = '001' then a.value07 else 0 end) VALUES01,
+   sum(case when cell_id = '001' then a.value17 else 0 end) VALUES02,
+   sum(case when cell_id = '001' then a.value27 else 0 end) VALUES03,
+   sum(case when cell_id = '001' then a.value37 else 0 end) VALUES04,
+   sum(case when cell_id = '002' then a.value07 else 0 end) VALUES05,
+   sum(case when cell_id = '002' then a.value17 else 0 end) VALUES06
+ from
+	dnapp.tf_fact_gird_market_01_day a
+	left outer join dwpdata.vw_citycode_rept mx 
+	on a.city_code = mx.city_code 
+	and mx.rept_290_tag = '1' 
+ where 
+   stat_date = #{datetime} 
+   and base_rept_id = 'fee' 
+   and cell_id in ('001','002')	
+ group by mx.eparchy_id 
+ )a
+ right outer join
+ dwpdata.vw_eparchy_city_rept m 
+ on a.eparchy_id = m.eparchy_id 
+)a  
+order by mms_order_id
+</select>
+<select id="selctGridtest2" resultType="Kdgrid1" parameterType="java.util.Map">
+select a.city_code_new value1,a.city_name value2,v01 value3,v02 value4 ,v03 value5,v04 value6,v05 value7,v06 value8 from
+(
+ select 
+  m.city_name,
+  m.city_code_new 
+, COALESCE(a.VALUES01,0)/100      v01
+, COALESCE(a.VALUES02,0)/100      v02
+, to_char(case when a.VALUES03 &lt;&gt; 0 then (COALESCE(a.VALUES02,0)-a.VALUES03)*1.00*100/a.VALUES03 else 0 end) ||'%' v03
+, to_char(case when a.VALUES04 &lt;&gt; 0 then (COALESCE(a.VALUES02,0)-a.VALUES04)*1.00*100/a.VALUES04 else 0 end) ||'%' v04
+, COALESCE(a.VALUES05,0)/100      v05
+, to_char(case when a.VALUES06 &lt;&gt; 0 then (COALESCE(a.VALUES05,0)-a.VALUES06)*1.00*100/a.VALUES06 else 0 end) ||'%' v06
+from
+(
+select 
+   mx.city_code_new,
+   sum(case when cell_id = '001' then a.value07 else 0 end) VALUES01,
+   sum(case when cell_id = '001' then a.value17 else 0 end) VALUES02,
+   sum(case when cell_id = '001' then a.value27 else 0 end) VALUES03,
+   sum(case when cell_id = '001' then a.value37 else 0 end) VALUES04,
+   sum(case when cell_id = '002' then a.value07 else 0 end) VALUES05,
+   sum(case when cell_id = '002' then a.value17 else 0 end) VALUES06
+ from
+	dnapp.tf_fact_gird_market_01_day a
+	left outer join dwpdata.vw_citycode_rept mx 
+	on a.city_code = mx.city_code 
+ where 
+   stat_date = #{datetime} 
+   and base_rept_id = 'fee' 
+   and cell_id in ('001','002')	
+ group by mx.city_code_new
+
+)a
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode})m 
+on a.city_code_new = m.city_code_new 
+order by m.mms_order_id
+)a
+</select>
+
+<select id="selctGridtest3" resultType="Kdgrid1" parameterType="java.util.Map">
+select  a.grid_section_name value2,a.grid_section_code value1,v01 value3,v02 value4 ,v03 value5,v04 value6,v05 value7,v06 value8 from
+(
+ select 
+   m.grid_section_name,
+   m.grid_section_code,
+  COALESCE(a.VALUES01,0)/100      v01
+, COALESCE(a.VALUES02,0)/100      v02
+, to_char(case when a.VALUES03 &lt;&gt; 0 then (COALESCE(a.VALUES02,0)-a.VALUES03)*1.00*100/a.VALUES03 else 0 end) ||'%' v03
+, to_char(case when a.VALUES04 &lt;&gt; 0 then (COALESCE(a.VALUES02,0)-a.VALUES04)*1.00*100/a.VALUES04 else 0 end) ||'%' v04
+, COALESCE(a.VALUES05,0)/100      v05
+, to_char(case when a.VALUES06 &lt;&gt; 0 then (COALESCE(a.VALUES05,0)-a.VALUES06)*1.00*100/a.VALUES06 else 0 end) ||'%' v06
+from
+ (
+  select 
+   mx.grid_section_code as grid_section_code,
+   mx.grid_section_name,
+   sum(case when cell_id = '001' then a.value07 else 0 end) VALUES01,
+   sum(case when cell_id = '001' then a.value17 else 0 end) VALUES02,
+   sum(case when cell_id = '001' then a.value27 else 0 end) VALUES03,
+   sum(case when cell_id = '001' then a.value37 else 0 end) VALUES04,
+   sum(case when cell_id = '002' then a.value07 else 0 end) VALUES05,
+   sum(case when cell_id = '002' then a.value17 else 0 end) VALUES06
+ from
+	dnapp.tf_fact_gird_market_01_day a
+	left outer join dwpdata.td_grid_section mx 
+	on a.grid_section_code = mx.grid_section_code 
+ where 
+   stat_date = #{datetime} 
+   and base_rept_id = 'fee' 
+   and cell_id in ('001','002')	
+ group by mx.grid_section_name,mx.grid_section_code
+ 
+)a
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m 
+on a.grid_section_code = m.grid_section_code 
+order by m.grid_section_code
+)a
+
+</select>
+
+<select id="selctGridtest4" resultType="Kdgrid1" parameterType="java.util.Map">
+select a.grid_name value2,a.grid_code value1,v01 value3,v02 value4 ,v03 value5,v04 value6,v05 value7,v06 value8 from
+
+(
+
+select 
+   m.grid_name,
+   m.grid_code,
+  COALESCE(a.VALUES01,0)/100      v01
+, COALESCE(a.VALUES02,0)/100      v02
+, to_char(case when a.VALUES03 &lt;&gt; 0 then (COALESCE(a.VALUES02,0)-a.VALUES03)*1.00*100/a.VALUES03 else 0 end) ||'%' v03
+, to_char(case when a.VALUES04 &lt;&gt; 0 then (COALESCE(a.VALUES02,0)-a.VALUES04)*1.00*100/a.VALUES04 else 0 end) ||'%' v04
+, COALESCE(a.VALUES05,0)/100      v05
+, to_char(case when a.VALUES06 &lt;&gt; 0 then (COALESCE(a.VALUES05,0)-a.VALUES06)*1.00*100/a.VALUES06 else 0 end) ||'%' v06
+ 
+ from
+ 
+  (
+  select 
+   mx.grid_code as grid_code,
+   mx.grid_name,
+   sum(case when cell_id = '001' then a.value07 else 0 end) VALUES01,
+   sum(case when cell_id = '001' then a.value17 else 0 end) VALUES02,
+   sum(case when cell_id = '001' then a.value27 else 0 end) VALUES03,
+   sum(case when cell_id = '001' then a.value37 else 0 end) VALUES04,
+   sum(case when cell_id = '002' then a.value07 else 0 end) VALUES05,
+   sum(case when cell_id = '002' then a.value17 else 0 end) VALUES06
+ from
+	dnapp.tf_fact_gird_market_01_day a
+	left outer join dwpdata.td_grid mx 
+	on a.grid_code = mx.grid_code 
+ where 
+   stat_date = #{datetime} 
+   and base_rept_id = 'fee' 
+   and cell_id in ('001','002')	
+ group by mx.grid_name,mx.grid_code
+ 
+)a
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode})m on a.grid_code = m.grid_code 
+order by m.grid_code
+)a
+</select>
+
+<!-- 流量出账收入日报 -->
+
+<select id="selctGrid1rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select a.eparchy_id value1,a.eparchy_name value2,v01 value3,v02 value4 ,v03 value5,v04 value6,v05 value7,v06 value8 from
+(
+select
+  m.eparchy_name,m.mms_order_id,m.eparchy_id
+, COALESCE(a.VALUES01,0)/100      v01
+, COALESCE(a.VALUES02,0)/100      v02
+, to_char(case when a.VALUES03 &lt;&gt; 0 then (COALESCE(a.VALUES02,0)-a.VALUES03)*1.00*100/a.VALUES03 else 0 end) ||'%' v03
+, to_char(case when a.VALUES04 &lt;&gt; 0 then (COALESCE(a.VALUES02,0)-a.VALUES04)*1.00*100/a.VALUES04 else 0 end) ||'%' v04
+, COALESCE(a.VALUES05,0)/100      v05
+, to_char(case when a.VALUES06 &lt;&gt; 0 then (COALESCE(a.VALUES05,0)-a.VALUES06)*1.00*100/a.VALUES06 else 0 end) ||'%' v06
+from
+(
+ select 
+   mx.eparchy_id as eparchy_id,
+   sum(case when cell_id = '001' then a.value10 else 0 end) VALUES01,
+   sum(case when cell_id = '001' then a.value20 else 0 end) VALUES02,
+   sum(case when cell_id = '001' then a.value30 else 0 end) VALUES03,
+   sum(case when cell_id = '001' then a.value40 else 0 end) VALUES04,
+   sum(case when cell_id = '002' then a.value10 else 0 end) VALUES05,
+   sum(case when cell_id = '002' then a.value20 else 0 end) VALUES06
+ from
+	dnapp.tf_fact_gird_market_01_day a
+	left outer join dwpdata.vw_citycode_rept mx 
+	on a.city_code = mx.city_code 
+	and mx.rept_290_tag = '1' 
+ where 
+   stat_date = #{datetime}
+   and base_rept_id = 'fee' 
+   and cell_id in ('001','002')	
+ group by mx.eparchy_id 
+ )a
+ right outer join
+ dwpdata.vw_eparchy_city_rept m 
+ on a.eparchy_id = m.eparchy_id 
+)a  
+order by mms_order_id
+</select>
+<select id="selctGrid1rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select a.city_code_new value1,a.city_name value2,v01 value3,v02 value4 ,v03 value5,v04 value6,v05 value7,v06 value8 from
+(
+ select 
+  m.city_name,
+  m.city_code_new 
+, COALESCE(a.VALUES01,0)/100      v01
+, COALESCE(a.VALUES02,0)/100      v02
+, to_char(case when a.VALUES03 &lt;&gt; 0 then (COALESCE(a.VALUES02,0)-a.VALUES03)*1.00*100/a.VALUES03 else 0 end) ||'%' v03
+, to_char(case when a.VALUES04 &lt;&gt; 0 then (COALESCE(a.VALUES02,0)-a.VALUES04)*1.00*100/a.VALUES04 else 0 end) ||'%' v04
+, COALESCE(a.VALUES05,0)/100      v05
+, to_char(case when a.VALUES06 &lt;&gt; 0 then (COALESCE(a.VALUES05,0)-a.VALUES06)*1.00*100/a.VALUES06 else 0 end) ||'%' v06
+from
+(
+select 
+   mx.city_code_new,
+   sum(case when cell_id = '001' then a.value10 else 0 end) VALUES01,
+   sum(case when cell_id = '001' then a.value20 else 0 end) VALUES02,
+   sum(case when cell_id = '001' then a.value30 else 0 end) VALUES03,
+   sum(case when cell_id = '001' then a.value40 else 0 end) VALUES04,
+   sum(case when cell_id = '002' then a.value10 else 0 end) VALUES05,
+   sum(case when cell_id = '002' then a.value20 else 0 end) VALUES06
+ from
+	dnapp.tf_fact_gird_market_01_day a
+	left outer join dwpdata.vw_citycode_rept mx 
+	on a.city_code = mx.city_code 
+ where 
+   stat_date =  #{datetime}
+   and base_rept_id = 'fee' 
+   and cell_id in ('001','002')	
+ group by mx.city_code_new
+
+)a
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode})m 
+on a.city_code_new = m.city_code_new 
+order by m.mms_order_id
+)a
+</select>
+
+<select id="selctGrid1rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select  a.grid_section_name value2,a.grid_section_code value1,v01 value3,v02 value4 ,v03 value5,v04 value6,v05 value7,v06 value8 from
+(
+ select 
+   m.grid_section_name,
+   m.grid_section_code,
+  COALESCE(a.VALUES01,0)/100      v01
+, COALESCE(a.VALUES02,0)/100      v02
+, to_char(case when a.VALUES03 &lt;&gt; 0 then (COALESCE(a.VALUES02,0)-a.VALUES03)*1.00*100/a.VALUES03 else 0 end) ||'%' v03
+, to_char(case when a.VALUES04 &lt;&gt; 0 then (COALESCE(a.VALUES02,0)-a.VALUES04)*1.00*100/a.VALUES04 else 0 end) ||'%' v04
+, COALESCE(a.VALUES05,0)/100      v05
+, to_char(case when a.VALUES06 &lt;&gt; 0 then (COALESCE(a.VALUES05,0)-a.VALUES06)*1.00*100/a.VALUES06 else 0 end) ||'%' v06
+from
+ (
+  select 
+   mx.grid_section_code as grid_section_code,
+   mx.grid_section_name,
+   sum(case when cell_id = '001' then a.value10 else 0 end) VALUES01,
+   sum(case when cell_id = '001' then a.value20 else 0 end) VALUES02,
+   sum(case when cell_id = '001' then a.value30 else 0 end) VALUES03,
+   sum(case when cell_id = '001' then a.value40 else 0 end) VALUES04,
+   sum(case when cell_id = '002' then a.value10 else 0 end) VALUES05,
+   sum(case when cell_id = '002' then a.value20 else 0 end) VALUES06
+ from
+	dnapp.tf_fact_gird_market_01_day a
+	left outer join dwpdata.td_grid_section mx 
+	on a.grid_section_code = mx.grid_section_code 
+ where 
+   stat_date =  #{datetime}
+   and base_rept_id = 'fee' 
+   and cell_id in ('001','002')	
+ group by mx.grid_section_name,mx.grid_section_code
+ 
+)a
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+(select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m 
+on a.grid_section_code = m.grid_section_code 
+order by m.grid_section_code
+)a
+
+</select>
+
+<select id="selctGrid1rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select a.grid_name value2,a.grid_code value1,v01 value3,v02 value4 ,v03 value5,v04 value6,v05 value7,v06 value8 from
+(
+select 
+   m.grid_name,
+   m.grid_code,
+  COALESCE(a.VALUES01,0)/100      v01
+, COALESCE(a.VALUES02,0)/100      v02
+, to_char(case when a.VALUES03 &lt;&gt; 0 then (COALESCE(a.VALUES02,0)-a.VALUES03)*1.00*100/a.VALUES03 else 0 end) ||'%' v03
+, to_char(case when a.VALUES04 &lt;&gt; 0 then (COALESCE(a.VALUES02,0)-a.VALUES04)*1.00*100/a.VALUES04 else 0 end) ||'%' v04
+, COALESCE(a.VALUES05,0)/100      v05
+, to_char(case when a.VALUES06 &lt;&gt; 0 then (COALESCE(a.VALUES05,0)-a.VALUES06)*1.00*100/a.VALUES06 else 0 end) ||'%' v06
+ from
+  (
+  select 
+   mx.grid_code as grid_code,
+   mx.grid_name,
+   sum(case when cell_id = '001' then a.value10 else 0 end) VALUES01,
+   sum(case when cell_id = '001' then a.value20 else 0 end) VALUES02,
+   sum(case when cell_id = '001' then a.value30 else 0 end) VALUES03,
+   sum(case when cell_id = '001' then a.value40 else 0 end) VALUES04,
+   sum(case when cell_id = '002' then a.value10 else 0 end) VALUES05,
+   sum(case when cell_id = '002' then a.value20 else 0 end) VALUES06
+ from
+	dnapp.tf_fact_gird_market_01_day a
+	left outer join dwpdata.td_grid mx 
+	on a.grid_code = mx.grid_code 
+ where 
+   stat_date =  #{datetime}
+   and base_rept_id = 'fee' 
+   and cell_id in ('001','002')	
+ group by mx.grid_name,mx.grid_code
+ 
+)a
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode})m on a.grid_code = m.grid_code 
+order by m.grid_code
+)a
+</select>
+
+<!-- 语音出账收入日报 -->
+<select id="selctGrid6rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0)/100 value3,
+coalesce(b.value02,0)/100 value4,
+to_char(coalesce((case when b.value03 &lt;&gt; 0 then (b.value02-b.value03)*1.00*100/b.value03 else 0 end),0))||'%' value5,
+to_char(coalesce((case when b.value04 &lt;&gt; 0 then (b.value02-b.value04)*1.00*100/b.value04 else 0 end),0))||'%' value6,
+coalesce(b.value05,0)/100 value7,
+to_char(coalesce((case when b.value06 &lt;&gt; 0 then (b.value05-b.value06)*1.00*100/b.value06 else 0 end),0))||'%' value8
+from
+(select
+mx.EPARCHY_ID,
+sum(case when cell_id = '001' then value02 else 0 end) as value01,
+sum(case when cell_id = '001' then value12 else 0 end) as value02,
+sum(case when cell_id = '001' then value22 else 0 end) as value03,
+sum(case when cell_id = '001' then value32 else 0 end) as value04,
+sum(case when cell_id = '002' then value02 else 0 end) as value05,
+sum(case when cell_id = '002' then value12 else 0 end) as value06
+from dnapp.tf_fact_gird_market_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime} 
+and a.base_rept_id = 'fee' and a.cell_id in ('001','002')
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID 
+order by m.mms_order_id
+</select>
+<select id="selctGrid6rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0)/100 value3,
+coalesce(b.value02,0)/100 value4,
+to_char(coalesce((case when b.value03 &lt;&gt; 0 then (b.value02-b.value03)*1.00*100/b.value03 else 0 end),0))||'%' value5,
+to_char(coalesce((case when b.value04 &lt;&gt; 0 then (b.value02-b.value04)*1.00*100/b.value04 else 0 end),0))||'%' value6,
+coalesce(b.value05,0)/100 value7,
+to_char(coalesce((case when b.value06 &lt;&gt; 0 then (b.value05-b.value06)*1.00*100/b.value06 else 0 end),0))||'%' value8
+from
+(select
+mx.city_code_new,
+sum(case when cell_id = '001' then value02 else 0 end) as value01,
+sum(case when cell_id = '001' then value12 else 0 end) as value02,
+sum(case when cell_id = '001' then value22 else 0 end) as value03,
+sum(case when cell_id = '001' then value32 else 0 end) as value04,
+sum(case when cell_id = '002' then value02 else 0 end) as value05,
+sum(case when cell_id = '002' then value12 else 0 end) as value06
+from dnapp.tf_fact_gird_market_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime} 
+and a.base_rept_id = 'fee' and a.cell_id in ('001','002')
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctGrid6rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0)/100 value3,
+coalesce(b.value02,0)/100 value4,
+to_char(coalesce((case when b.value03 &lt;&gt; 0 then (b.value02-b.value03)*1.00*100/b.value03 else 0 end),0))||'%' value5,
+to_char(coalesce((case when b.value04 &lt;&gt; 0 then (b.value02-b.value04)*1.00*100/b.value04 else 0 end),0))||'%' value6,
+coalesce(b.value05,0)/100 value7,
+to_char(coalesce((case when b.value06 &lt;&gt; 0 then (b.value05-b.value06)*1.00*100/b.value06 else 0 end),0))||'%' value8
+from
+(select
+mx.grid_section_code,
+sum(case when cell_id = '001' then value02 else 0 end) as value01,
+sum(case when cell_id = '001' then value12 else 0 end) as value02,
+sum(case when cell_id = '001' then value22 else 0 end) as value03,
+sum(case when cell_id = '001' then value32 else 0 end) as value04,
+sum(case when cell_id = '002' then value02 else 0 end) as value05,
+sum(case when cell_id = '002' then value12 else 0 end) as value06
+from dnapp.tf_fact_gird_market_01_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime} 
+and a.base_rept_id = 'fee' and a.cell_id in ('001','002')
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code =
+(select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m 
+on b.grid_section_code = m.grid_section_code 
+</select>
+<select id="selctGrid6rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0)/100 value3,
+coalesce(b.value02,0)/100 value4,
+to_char(coalesce((case when b.value03 &lt;&gt; 0 then (b.value02-b.value03)*1.00*100/b.value03 else 0 end),0))||'%' value5,
+to_char(coalesce((case when b.value04 &lt;&gt; 0 then (b.value02-b.value04)*1.00*100/b.value04 else 0 end),0))||'%' value6,
+coalesce(b.value05,0)/100 value7,
+to_char(coalesce((case when b.value06 &lt;&gt; 0 then (b.value05-b.value06)*1.00*100/b.value06 else 0 end),0))||'%' value8
+from
+(select
+mx.grid_code,
+sum(case when cell_id = '001' then value02 else 0 end) as value01,
+sum(case when cell_id = '001' then value12 else 0 end) as value02,
+sum(case when cell_id = '001' then value22 else 0 end) as value03,
+sum(case when cell_id = '001' then value32 else 0 end) as value04,
+sum(case when cell_id = '002' then value02 else 0 end) as value05,
+sum(case when cell_id = '002' then value12 else 0 end) as value06
+from dnapp.tf_fact_gird_market_01_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime} 
+and a.base_rept_id = 'fee' and a.cell_id in ('001','002')
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code =#{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<!-- 新业务出账收入日报-->
+<select id="selctGrid7rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0)/100 value3,
+coalesce(b.value02,0)/100 value4,
+to_char(coalesce((case when b.value03 &lt;&gt; 0 then (b.value02-b.value03)*1.00*100/b.value03 else 0 end),0))||'%' value5,
+to_char(coalesce((case when b.value04 &lt;&gt; 0 then (b.value02-b.value04)*1.00*100/b.value04 else 0 end),0))||'%' value6,
+coalesce(b.value05,0)/100 value7,
+to_char(coalesce((case when b.value06 &lt;&gt; 0 then (b.value05-b.value06)*1.00*100/b.value06 else 0 end),0))||'%' value8
+from
+(select
+mx.EPARCHY_ID,
+sum(case when cell_id = '001' then value09 else 0 end) as value01,
+sum(case when cell_id = '001' then value19 else 0 end) as value02,
+sum(case when cell_id = '001' then value29 else 0 end) as value03,
+sum(case when cell_id = '001' then value39 else 0 end) as value04,
+sum(case when cell_id = '002' then value09 else 0 end) as value05,
+sum(case when cell_id = '002' then value19 else 0 end) as value06
+from dnapp.tf_fact_gird_market_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime} 
+and a.base_rept_id = 'fee' and a.cell_id in ('001','002')
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID 
+order by m.mms_order_id
+
+</select>
+<select id="selctGrid7rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0)/100 value3,
+coalesce(b.value02,0)/100 value4,
+to_char(coalesce((case when b.value03 &lt;&gt; 0 then (b.value02-b.value03)*1.00*100/b.value03 else 0 end),0))||'%' value5,
+to_char(coalesce((case when b.value04 &lt;&gt; 0 then (b.value02-b.value04)*1.00*100/b.value04 else 0 end),0))||'%' value6,
+coalesce(b.value05,0)/100 value7,
+to_char(coalesce((case when b.value06 &lt;&gt; 0 then (b.value05-b.value06)*1.00*100/b.value06 else 0 end),0))||'%' value8
+from
+(select
+mx.city_code_new,
+sum(case when cell_id = '001' then value09 else 0 end) as value01,
+sum(case when cell_id = '001' then value19 else 0 end) as value02,
+sum(case when cell_id = '001' then value29 else 0 end) as value03,
+sum(case when cell_id = '001' then value39 else 0 end) as value04,
+sum(case when cell_id = '002' then value09 else 0 end) as value05,
+sum(case when cell_id = '002' then value19 else 0 end) as value06
+from dnapp.tf_fact_gird_market_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime} 
+and a.base_rept_id = 'fee' and a.cell_id in ('001','002')
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctGrid7rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0)/100 value3,
+coalesce(b.value02,0)/100 value4,
+to_char(coalesce((case when b.value03 &lt;&gt; 0 then (b.value02-b.value03)*1.00*100/b.value03 else 0 end),0))||'%' value5,
+to_char(coalesce((case when b.value04 &lt;&gt; 0 then (b.value02-b.value04)*1.00*100/b.value04 else 0 end),0))||'%' value6,
+coalesce(b.value05,0)/100 value7,
+to_char(coalesce((case when b.value06 &lt;&gt; 0 then (b.value05-b.value06)*1.00*100/b.value06 else 0 end),0))||'%' value8
+from
+(select
+mx.grid_section_code,
+sum(case when cell_id = '001' then value09 else 0 end) as value01,
+sum(case when cell_id = '001' then value19 else 0 end) as value02,
+sum(case when cell_id = '001' then value29 else 0 end) as value03,
+sum(case when cell_id = '001' then value39 else 0 end) as value04,
+sum(case when cell_id = '002' then value09 else 0 end) as value05,
+sum(case when cell_id = '002' then value19 else 0 end) as value06
+from dnapp.tf_fact_gird_market_01_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime} 
+and a.base_rept_id = 'fee' and a.cell_id in ('001','002')
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+(select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m 
+on b.grid_section_code = m.grid_section_code 
+
+</select>
+<select id="selctGrid7rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0)/100 value3,
+coalesce(b.value02,0)/100 value4,
+to_char(coalesce((case when b.value03 &lt;&gt; 0 then (b.value02-b.value03)*1.00*100/b.value03 else 0 end),0))||'%' value5,
+to_char(coalesce((case when b.value04 &lt;&gt; 0 then (b.value02-b.value04)*1.00*100/b.value04 else 0 end),0))||'%' value6,
+coalesce(b.value05,0)/100 value7,
+to_char(coalesce((case when b.value06 &lt;&gt; 0 then (b.value05-b.value06)*1.00*100/b.value06 else 0 end),0))||'%' value8
+from
+(select
+mx.grid_code,
+sum(case when cell_id = '001' then value09 else 0 end) as value01,
+sum(case when cell_id = '001' then value19 else 0 end) as value02,
+sum(case when cell_id = '001' then value29 else 0 end) as value03,
+sum(case when cell_id = '001' then value39 else 0 end) as value04,
+sum(case when cell_id = '002' then value09 else 0 end) as value05,
+sum(case when cell_id = '002' then value19 else 0 end) as value06
+from dnapp.tf_fact_gird_market_01_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime} 
+and a.base_rept_id = 'fee' and a.cell_id in ('001','002')
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+
+<!-- GPRS流量日报 -->
+
+<select id="selctGrid2rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0)*1.00/1024/10000 value3,
+to_char(CAST(ROUND(coalesce(case when b.value02 &lt;&gt; 0 then (b.value01-b.value02)*1.000*100/b.value02 else 0 end,0),2) as numeric(31,2)))||'%' value4,
+coalesce(b.value03,0)*1.00/1024/10000 value5,
+to_char(CAST(ROUND(coalesce(case when b.value04 &lt;&gt; 0 then (b.value03-b.value04)*1.000*100/b.value04 else 0 end,0),2) as numeric(31,2)))||'%' value6,
+to_char(CAST(ROUND(coalesce(case when b.value05 &lt;&gt; 0 then (b.value03-b.value05)*1.000*100/b.value05 else 0 end,0),2) as numeric(31,2)))||'%' value7,
+coalesce(b.value06,0)*1.00/1024/10000 value8,
+to_char(CAST(ROUND(coalesce(case when b.value07 &lt;&gt; 0 then (b.value06-b.value07)*1.000*100/b.value07 else 0 end,0),2) as numeric(31,2)))||'%' value9
+from
+(select
+mx.EPARCHY_ID,
+sum(case when cell_id = '001' then value01 else 0 end) as value01,
+sum(case when cell_id = '001' then value10 else 0 end) as value02,
+sum(case when cell_id = '001' then value02 else 0 end) as value03,
+sum(case when cell_id = '001' then value11 else 0 end) as value04,
+sum(case when cell_id = '001' then value12 else 0 end) as value05,
+sum(case when cell_id = '002' then value01 else 0 end) as value06,
+sum(case when cell_id = '002' then value05 else 0 end) as value07
+from dnapp.tf_fact_gird_market_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'business' and a.cell_id in ('001','002')
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+
+</select>
+<select id="selctGrid2rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0)*1.00/1024/10000 value3,
+to_char(CAST(ROUND(coalesce(case when b.value02 &lt;&gt; 0 then (b.value01-b.value02)*1.000*100/b.value02 else 0 end,0),2) as numeric(31,2)))||'%' value4,
+coalesce(b.value03,0)*1.00/1024/10000 value5,
+to_char(CAST(ROUND(coalesce(case when b.value04 &lt;&gt; 0 then (b.value03-b.value04)*1.000*100/b.value04 else 0 end,0),2) as numeric(31,2)))||'%' value6,
+to_char(CAST(ROUND(coalesce(case when b.value05 &lt;&gt; 0 then (b.value03-b.value05)*1.000*100/b.value05 else 0 end,0),2) as numeric(31,2)))||'%' value7,
+coalesce(b.value06,0)*1.00/1024/10000 value8,
+to_char(CAST(ROUND(coalesce(case when b.value07 &lt;&gt; 0 then (b.value06-b.value07)*1.000*100/b.value07 else 0 end,0),2) as numeric(31,2)))||'%' value9
+from
+(select
+mx.city_code_new,
+sum(case when cell_id = '001' then value01 else 0 end) as value01,
+sum(case when cell_id = '001' then value10 else 0 end) as value02,
+sum(case when cell_id = '001' then value02 else 0 end) as value03,
+sum(case when cell_id = '001' then value11 else 0 end) as value04,
+sum(case when cell_id = '001' then value12 else 0 end) as value05,
+sum(case when cell_id = '002' then value01 else 0 end) as value06,
+sum(case when cell_id = '002' then value05 else 0 end) as value07
+from dnapp.tf_fact_gird_market_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'business' and a.cell_id in ('001','002')
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctGrid2rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0)*1.00/1024/10000 value3,
+to_char(CAST(ROUND(coalesce(case when b.value02 &lt;&gt; 0 then (b.value01-b.value02)*1.000*100/b.value02 else 0 end,0),2) as numeric(31,2)))||'%' value4,
+coalesce(b.value03,0)*1.00/1024/10000 value5,
+to_char(CAST(ROUND(coalesce(case when b.value04 &lt;&gt; 0 then (b.value03-b.value04)*1.000*100/b.value04 else 0 end,0),2) as numeric(31,2)))||'%' value6,
+to_char(CAST(ROUND(coalesce(case when b.value05 &lt;&gt; 0 then (b.value03-b.value05)*1.000*100/b.value05 else 0 end,0),2) as numeric(31,2)))||'%' value7,
+coalesce(b.value06,0)*1.00/1024/10000 value8,
+to_char(CAST(ROUND(coalesce(case when b.value07 &lt;&gt; 0 then (b.value06-b.value07)*1.000*100/b.value07 else 0 end,0),2) as numeric(31,2)))||'%' value9
+from
+(select
+mx.grid_section_code,
+sum(case when cell_id = '001' then value01 else 0 end) as value01,
+sum(case when cell_id = '001' then value10 else 0 end) as value02,
+sum(case when cell_id = '001' then value02 else 0 end) as value03,
+sum(case when cell_id = '001' then value11 else 0 end) as value04,
+sum(case when cell_id = '001' then value12 else 0 end) as value05,
+sum(case when cell_id = '002' then value01 else 0 end) as value06,
+sum(case when cell_id = '002' then value05 else 0 end) as value07
+from dnapp.tf_fact_gird_market_01_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'business' and a.cell_id in ('001','002')
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code =
+(select distinct city_code from dwpdata.vw_citycode_rept where city_code_new =  #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code 
+</select>
+
+<select id="selctGrid2rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0)*1.00/1024/10000 value3,
+to_char(CAST(ROUND(coalesce(case when b.value02 &lt;&gt; 0 then (b.value01-b.value02)*1.000*100/b.value02 else 0 end,0),2) as numeric(31,2)))||'%' value4,
+coalesce(b.value03,0)*1.00/1024/10000 value5,
+to_char(CAST(ROUND(coalesce(case when b.value04 &lt;&gt; 0 then (b.value03-b.value04)*1.000*100/b.value04 else 0 end,0),2) as numeric(31,2)))||'%' value6,
+to_char(CAST(ROUND(coalesce(case when b.value05 &lt;&gt; 0 then (b.value03-b.value05)*1.000*100/b.value05 else 0 end,0),2) as numeric(31,2)))||'%' value7,
+coalesce(b.value06,0)*1.00/1024/10000 value8,
+to_char(CAST(ROUND(coalesce(case when b.value07 &lt;&gt; 0 then (b.value06-b.value07)*1.000*100/b.value07 else 0 end,0),2) as numeric(31,2)))||'%' value9
+from
+(select
+mx.grid_code,
+sum(case when cell_id = '001' then value01 else 0 end) as value01,
+sum(case when cell_id = '001' then value10 else 0 end) as value02,
+sum(case when cell_id = '001' then value02 else 0 end) as value03,
+sum(case when cell_id = '001' then value11 else 0 end) as value04,
+sum(case when cell_id = '001' then value12 else 0 end) as value05,
+sum(case when cell_id = '002' then value01 else 0 end) as value06,
+sum(case when cell_id = '002' then value05 else 0 end) as value07
+from dnapp.tf_fact_gird_market_01_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'business' and a.cell_id in ('001','002')
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid  where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<!-- 大流量产品发展日报 -->
+<select id="selctGrid13rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value02,0) value3,
+to_char(coalesce(case when value01 &lt;&gt; 0 and value10 &lt;&gt;0 then (value02*1.00*100/value01) - (value11*1.00*100/value10) else 0 end,0))||'%' value4,
+coalesce(b.value03,0) value5,
+to_char(coalesce(case when value01 &lt;&gt; 0 then value03*1.00*100/value01 else 0 end,0))||'%' value6,
+to_char(coalesce(case when value01 &lt;&gt; 0 and value04 &lt;&gt;0 then (value03*1.00*100/value01) - (value06*1.00*100/value04) else 0 end,0))||'%' value7,
+to_char(coalesce(case when value01 &lt;&gt; 0 and value07 &lt;&gt;0 then (value03*1.00*100/value01) - (value09*1.00*100/value07) else 0 end,0))||'%' value8
+from
+(select
+mx.EPARCHY_ID,
+sum(case when cell_id = '009' then value01 else 0 end) as value01,
+sum(case when cell_id = '009' then value02 else 0 end) as value02,
+sum(case when cell_id = '009' then value03 else 0 end) as value03,
+sum(case when cell_id = '009' then value04 else 0 end) as value04,
+
+sum(case when cell_id = '009' then value05 else 0 end) as value05,
+sum(case when cell_id = '009' then value06 else 0 end) as value06,
+sum(case when cell_id = '009' then value07 else 0 end) as value07,
+sum(case when cell_id = '009' then value08 else 0 end) as value08,
+
+sum(case when cell_id = '009' then value09 else 0 end) as value09,
+sum(case when cell_id = '009' then value10 else 0 end) as value10,
+sum(case when cell_id = '009' then value11 else 0 end) as value11,
+sum(case when cell_id = '009' then value12 else 0 end) as value12
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('009')
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+</select>
+<select id="selctGrid13rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value02,0) value3,
+to_char(coalesce(case when value01 &lt;&gt; 0 and value10 &lt;&gt;0 then (value02*1.00*100/value01) - (value11*1.00*100/value10) else 0 end,0))||'%' value4,
+coalesce(b.value03,0) value5,
+to_char(coalesce(case when value01 &lt;&gt; 0 then value03*1.00*100/value01 else 0 end,0))||'%' value6,
+to_char(coalesce(case when value01 &lt;&gt; 0 and value04 &lt;&gt;0 then (value03*1.00*100/value01) - (value06*1.00*100/value04) else 0 end,0))||'%' value7,
+to_char(coalesce(case when value01 &lt;&gt; 0 and value07 &lt;&gt;0 then (value03*1.00*100/value01) - (value09*1.00*100/value07) else 0 end,0))||'%' value8
+from
+(select
+mx.city_code_new,
+sum(case when cell_id = '009' then value01 else 0 end) as value01,
+sum(case when cell_id = '009' then value02 else 0 end) as value02,
+sum(case when cell_id = '009' then value03 else 0 end) as value03,
+sum(case when cell_id = '009' then value04 else 0 end) as value04,
+
+sum(case when cell_id = '009' then value05 else 0 end) as value05,
+sum(case when cell_id = '009' then value06 else 0 end) as value06,
+sum(case when cell_id = '009' then value07 else 0 end) as value07,
+sum(case when cell_id = '009' then value08 else 0 end) as value08,
+
+sum(case when cell_id = '009' then value09 else 0 end) as value09,
+sum(case when cell_id = '009' then value10 else 0 end) as value10,
+sum(case when cell_id = '009' then value11 else 0 end) as value11,
+sum(case when cell_id = '009' then value12 else 0 end) as value12
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('009')
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctGrid13rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value02,0) value3,
+to_char(coalesce(case when value01 &lt;&gt; 0 and value10 &lt;&gt;0 then (value02*1.00*100/value01) - (value11*1.00*100/value10) else 0 end,0))||'%' value4,
+coalesce(b.value03,0) value5,
+to_char(coalesce(case when value01 &lt;&gt; 0 then value03*1.00*100/value01 else 0 end,0))||'%' value6,
+to_char(coalesce(case when value01 &lt;&gt; 0 and value04 &lt;&gt;0 then (value03*1.00*100/value01) - (value06*1.00*100/value04) else 0 end,0))||'%' value7,
+to_char(coalesce(case when value01 &lt;&gt; 0 and value07 &lt;&gt;0 then (value03*1.00*100/value01) - (value09*1.00*100/value07) else 0 end,0))||'%' value8
+from
+(select
+mx.grid_section_code,
+sum(case when cell_id = '009' then value01 else 0 end) as value01,
+sum(case when cell_id = '009' then value02 else 0 end) as value02,
+sum(case when cell_id = '009' then value03 else 0 end) as value03,
+sum(case when cell_id = '009' then value04 else 0 end) as value04,
+
+sum(case when cell_id = '009' then value05 else 0 end) as value05,
+sum(case when cell_id = '009' then value06 else 0 end) as value06,
+sum(case when cell_id = '009' then value07 else 0 end) as value07,
+sum(case when cell_id = '009' then value08 else 0 end) as value08,
+
+sum(case when cell_id = '009' then value09 else 0 end) as value09,
+sum(case when cell_id = '009' then value10 else 0 end) as value10,
+sum(case when cell_id = '009' then value11 else 0 end) as value11,
+sum(case when cell_id = '009' then value12 else 0 end) as value12
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('009')
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+(select distinct city_code from dwpdata.vw_citycode_rept where city_code_new =  #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code 
+</select>
+<select id="selctGrid13rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value02,0) value3,
+to_char(coalesce(case when value01 &lt;&gt; 0 and value10 &lt;&gt;0 then (value02*1.00*100/value01) - (value11*1.00*100/value10) else 0 end,0))||'%' value4,
+coalesce(b.value03,0) value5,
+to_char(coalesce(case when value01 &lt;&gt; 0 then value03*1.00*100/value01 else 0 end,0))||'%' value6,
+to_char(coalesce(case when value01 &lt;&gt; 0 and value04 &lt;&gt;0 then (value03*1.00*100/value01) - (value06*1.00*100/value04) else 0 end,0))||'%' value7,
+to_char(coalesce(case when value01 &lt;&gt; 0 and value07 &lt;&gt;0 then (value03*1.00*100/value01) - (value09*1.00*100/value07) else 0 end,0))||'%' value8
+from
+(select
+mx.grid_code,
+sum(case when cell_id = '009' then value01 else 0 end) as value01,
+sum(case when cell_id = '009' then value02 else 0 end) as value02,
+sum(case when cell_id = '009' then value03 else 0 end) as value03,
+sum(case when cell_id = '009' then value04 else 0 end) as value04,
+
+sum(case when cell_id = '009' then value05 else 0 end) as value05,
+sum(case when cell_id = '009' then value06 else 0 end) as value06,
+sum(case when cell_id = '009' then value07 else 0 end) as value07,
+sum(case when cell_id = '009' then value08 else 0 end) as value08,
+
+sum(case when cell_id = '009' then value09 else 0 end) as value09,
+sum(case when cell_id = '009' then value10 else 0 end) as value10,
+sum(case when cell_id = '009' then value11 else 0 end) as value11,
+sum(case when cell_id = '009' then value12 else 0 end) as value12
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('009')
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+
+<!-- 新增通信客户日报 -->
+<select id="selctGrid3rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value07,0) value5,
+to_char(CAST(ROUND(coalesce((case when b.value01+b.value04+b.value07 &lt;&gt; 0 then b.value01*1.000*100/(b.value01+b.value04+b.value07) else 0 end),0),2) as numeric(31,2)))||'%' value6,
+to_char(CAST(ROUND(coalesce((case when b.value01+b.value04+b.value07 &lt;&gt; 0 then b.value04*1.000*100/(b.value01+b.value04+b.value07) else 0 end),0),2) as numeric(31,2)))||'%' value7,
+to_char(CAST(ROUND(coalesce((case when b.value01+b.value04+b.value07 &lt;&gt; 0 then b.value07*1.000*100/(b.value01+b.value04+b.value07) else 0 end),0),2) as numeric(31,2)))||'%' value8,
+coalesce(b.value02,0) value9,
+coalesce(b.value05,0) value10,
+coalesce(b.value08,0) value11,
+to_char(CAST(ROUND(coalesce((case when b.value03 &lt;&gt; 0 then (b.value02-b.value03)*1.000*100/b.value03 else 0 end),0),2) as numeric(31,2)))||'%' value12,
+to_char(CAST(ROUND(coalesce((case when b.value06 &lt;&gt; 0 then (b.value05-b.value06)*1.000*100/b.value06 else 0 end),0),2) as numeric(31,2)))||'%' value13,
+to_char(CAST(ROUND(coalesce((case when b.value09 &lt;&gt; 0 then (b.value08-b.value09)*1.000*100/b.value09 else 0 end),0),2) as numeric(31,2)))||'%' value14,
+to_char(CAST(ROUND(coalesce((case when b.value02+b.value05+b.value08 &lt;&gt; 0 then b.value02*1.000*100/(b.value02+b.value05/0.93+b.value08/0.93) else 0 end),0),2) as numeric(31,2)))||'%' value15,
+to_char(CAST(ROUND(coalesce((case when b.value02+b.value05+b.value08 &lt;&gt; 0 then b.value05*1.000*100/(b.value02+b.value05/0.93+b.value08/0.93) else 0 end),0),2) as numeric(31,2)))||'%' value16,
+to_char(CAST(ROUND(coalesce((case when b.value02+b.value05+b.value08 &lt;&gt; 0 then b.value08*1.000*100/(b.value02+b.value05/0.93+b.value08/0.93) else 0 end),0),2) as numeric(31,2)))||'%' value17
+from
+(
+select
+mx.EPARCHY_ID,
+sum(a.value01) as value01,
+sum(a.value02) as value02,
+sum(a.value03) as value03,
+sum(a.value04) as value04,
+sum(a.value05) as value05,
+sum(a.value06) as value06,
+sum(a.value07) as value07,
+sum(a.value08) as value08,
+sum(a.value09) as value09
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '003'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+</select>
+<select id="selctGrid3rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value07,0) value5,
+to_char(CAST(ROUND(coalesce((case when b.value01+b.value04+b.value07 &lt;&gt; 0 then b.value01*1.000*100/(b.value01+b.value04+b.value07) else 0 end),0),2) as numeric(31,2)))||'%' value6,
+to_char(CAST(ROUND(coalesce((case when b.value01+b.value04+b.value07 &lt;&gt; 0 then b.value04*1.000*100/(b.value01+b.value04+b.value07) else 0 end),0),2) as numeric(31,2)))||'%' value7,
+to_char(CAST(ROUND(coalesce((case when b.value01+b.value04+b.value07 &lt;&gt; 0 then b.value07*1.000*100/(b.value01+b.value04+b.value07) else 0 end),0),2) as numeric(31,2)))||'%' value8,
+coalesce(b.value02,0) value9,
+coalesce(b.value05,0) value10,
+coalesce(b.value08,0) value11,
+to_char(CAST(ROUND(coalesce((case when b.value03 &lt;&gt; 0 then (b.value02-b.value03)*1.000*100/b.value03 else 0 end),0),2) as numeric(31,2)))||'%' value12,
+to_char(CAST(ROUND(coalesce((case when b.value06 &lt;&gt; 0 then (b.value05-b.value06)*1.000*100/b.value06 else 0 end),0),2) as numeric(31,2)))||'%' value13,
+to_char(CAST(ROUND(coalesce((case when b.value09 &lt;&gt; 0 then (b.value08-b.value09)*1.000*100/b.value09 else 0 end),0),2) as numeric(31,2)))||'%' value14,
+to_char(CAST(ROUND(coalesce((case when b.value02+b.value05+b.value08 &lt;&gt; 0 then b.value02*1.000*100/(b.value02+b.value05/0.93+b.value08/0.93) else 0 end),0),2) as numeric(31,2)))||'%' value15,
+to_char(CAST(ROUND(coalesce((case when b.value02+b.value05+b.value08 &lt;&gt; 0 then b.value05*1.000*100/(b.value02+b.value05/0.93+b.value08/0.93) else 0 end),0),2) as numeric(31,2)))||'%' value16,
+to_char(CAST(ROUND(coalesce((case when b.value02+b.value05+b.value08 &lt;&gt; 0 then b.value08*1.000*100/(b.value02+b.value05/0.93+b.value08/0.93) else 0 end),0),2) as numeric(31,2)))||'%' value17
+from
+(
+select
+mx.city_code_new,
+sum(a.value01) as value01,
+sum(a.value02) as value02,
+sum(a.value03) as value03,
+sum(a.value04) as value04,
+sum(a.value05) as value05,
+sum(a.value06) as value06,
+sum(a.value07) as value07,
+sum(a.value08) as value08,
+sum(a.value09) as value09
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '003'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new 
+order by m.mms_order_id
+</select>
+<select id="selctGrid3rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value07,0) value5,
+to_char(CAST(ROUND(coalesce((case when b.value01+b.value04+b.value07 &lt;&gt; 0 then b.value01*1.000*100/(b.value01+b.value04+b.value07) else 0 end),0),2) as numeric(31,2)))||'%' value6,
+to_char(CAST(ROUND(coalesce((case when b.value01+b.value04+b.value07 &lt;&gt; 0 then b.value04*1.000*100/(b.value01+b.value04+b.value07) else 0 end),0),2) as numeric(31,2)))||'%' value7,
+to_char(CAST(ROUND(coalesce((case when b.value01+b.value04+b.value07 &lt;&gt; 0 then b.value07*1.000*100/(b.value01+b.value04+b.value07) else 0 end),0),2) as numeric(31,2)))||'%' value8,
+coalesce(b.value02,0) value9,
+coalesce(b.value05,0) value10,
+coalesce(b.value08,0) value11,
+to_char(CAST(ROUND(coalesce((case when b.value03 &lt;&gt; 0 then (b.value02-b.value03)*1.000*100/b.value03 else 0 end),0),2) as numeric(31,2)))||'%' value12,
+to_char(CAST(ROUND(coalesce((case when b.value06 &lt;&gt; 0 then (b.value05-b.value06)*1.000*100/b.value06 else 0 end),0),2) as numeric(31,2)))||'%' value13,
+to_char(CAST(ROUND(coalesce((case when b.value09 &lt;&gt; 0 then (b.value08-b.value09)*1.000*100/b.value09 else 0 end),0),2) as numeric(31,2)))||'%' value14,
+to_char(CAST(ROUND(coalesce((case when b.value02+b.value05+b.value08 &lt;&gt; 0 then b.value02*1.000*100/(b.value02+b.value05/0.93+b.value08/0.93) else 0 end),0),2) as numeric(31,2)))||'%' value15,
+to_char(CAST(ROUND(coalesce((case when b.value02+b.value05+b.value08 &lt;&gt; 0 then b.value05*1.000*100/(b.value02+b.value05/0.93+b.value08/0.93) else 0 end),0),2) as numeric(31,2)))||'%' value16,
+to_char(CAST(ROUND(coalesce((case when b.value02+b.value05+b.value08 &lt;&gt; 0 then b.value08*1.000*100/(b.value02+b.value05/0.93+b.value08/0.93) else 0 end),0),2) as numeric(31,2)))||'%' value17
+from
+(
+select
+mx.grid_section_code,
+sum(a.value01) as value01,
+sum(a.value02) as value02,
+sum(a.value03) as value03,
+sum(a.value04) as value04,
+sum(a.value05) as value05,
+sum(a.value06) as value06,
+sum(a.value07) as value07,
+sum(a.value08) as value08,
+sum(a.value09) as value09
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '003'
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code =
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m 
+on b.grid_section_code = m.grid_section_code 
+</select>
+<select id="selctGrid3rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value07,0) value5,
+to_char(CAST(ROUND(coalesce((case when b.value01+b.value04+b.value07 &lt;&gt; 0 then b.value01*1.000*100/(b.value01+b.value04+b.value07) else 0 end),0),2) as numeric(31,2)))||'%' value6,
+to_char(CAST(ROUND(coalesce((case when b.value01+b.value04+b.value07 &lt;&gt; 0 then b.value04*1.000*100/(b.value01+b.value04+b.value07) else 0 end),0),2) as numeric(31,2)))||'%' value7,
+to_char(CAST(ROUND(coalesce((case when b.value01+b.value04+b.value07 &lt;&gt; 0 then b.value07*1.000*100/(b.value01+b.value04+b.value07) else 0 end),0),2) as numeric(31,2)))||'%' value8,
+coalesce(b.value02,0) value9,
+coalesce(b.value05,0) value10,
+coalesce(b.value08,0) value11,
+to_char(CAST(ROUND(coalesce((case when b.value03 &lt;&gt; 0 then (b.value02-b.value03)*1.000*100/b.value03 else 0 end),0),2) as numeric(31,2)))||'%' value12,
+to_char(CAST(ROUND(coalesce((case when b.value06 &lt;&gt; 0 then (b.value05-b.value06)*1.000*100/b.value06 else 0 end),0),2) as numeric(31,2)))||'%' value13,
+to_char(CAST(ROUND(coalesce((case when b.value09 &lt;&gt; 0 then (b.value08-b.value09)*1.000*100/b.value09 else 0 end),0),2) as numeric(31,2)))||'%' value14,
+to_char(CAST(ROUND(coalesce((case when b.value02+b.value05+b.value08 &lt;&gt; 0 then b.value02*1.000*100/(b.value02+b.value05/0.93+b.value08/0.93) else 0 end),0),2) as numeric(31,2)))||'%' value15,
+to_char(CAST(ROUND(coalesce((case when b.value02+b.value05+b.value08 &lt;&gt; 0 then b.value05*1.000*100/(b.value02+b.value05/0.93+b.value08/0.93) else 0 end),0),2) as numeric(31,2)))||'%' value16,
+to_char(CAST(ROUND(coalesce((case when b.value02+b.value05+b.value08 &lt;&gt; 0 then b.value08*1.000*100/(b.value02+b.value05/0.93+b.value08/0.93) else 0 end),0),2) as numeric(31,2)))||'%' value17
+from
+(
+select
+mx.grid_code,
+sum(a.value01) as value01,
+sum(a.value02) as value02,
+sum(a.value03) as value03,
+sum(a.value04) as value04,
+sum(a.value05) as value05,
+sum(a.value06) as value06,
+sum(a.value07) as value07,
+sum(a.value08) as value08,
+sum(a.value09) as value09
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '003'
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<!-- 4G客户净增日报 -->
+
+<select id="selctGrid4rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value01-b.value03,0) value4,
+coalesce(b.value01-b.value02,0) value5,
+coalesce(b.value06,0) value6,
+coalesce(b.value06-b.value07,0) value7,
+coalesce(b.value01-b.value05,0) value8
+from
+(select
+mx.EPARCHY_ID,
+sum(a.value01) as value01,
+sum(a.value02) as value02,
+sum(a.value03) as value03,
+sum(a.value05) as value05,
+sum(a.value06) as value06,
+sum(a.value07) as value07
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '002'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID 
+order by m.mms_order_id
+</select>
+
+<select id="selctGrid4rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value01-b.value03,0) value4,
+coalesce(b.value01-b.value02,0) value5,
+coalesce(b.value06,0) value6,
+coalesce(b.value06-b.value07,0) value7,
+coalesce(b.value01-b.value05,0) value8
+from
+(select
+mx.city_code_new,
+sum(a.value01) as value01,
+sum(a.value02) as value02,
+sum(a.value03) as value03,
+sum(a.value05) as value05,
+sum(a.value06) as value06,
+sum(a.value07) as value07
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '002'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new 
+order by m.mms_order_id
+</select>
+
+<select id="selctGrid4rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value01-b.value03,0) value4,
+coalesce(b.value01-b.value02,0) value5,
+coalesce(b.value06,0) value6,
+coalesce(b.value06-b.value07,0) value7,
+coalesce(b.value01-b.value05,0) value8
+from
+(select
+mx.grid_section_code,
+sum(a.value01) as value01,
+sum(a.value02) as value02,
+sum(a.value03) as value03,
+sum(a.value05) as value05,
+sum(a.value06) as value06,
+sum(a.value07) as value07
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '002'
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m 
+on b.grid_section_code = m.grid_section_code 
+</select>
+
+<select id="selctGrid4rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value01-b.value03,0) value4,
+coalesce(b.value01-b.value02,0) value5,
+coalesce(b.value06,0) value6,
+coalesce(b.value06-b.value07,0) value7,
+coalesce(b.value01-b.value05,0) value8
+from
+(select
+mx.grid_code,
+sum(a.value01) as value01,
+sum(a.value02) as value02,
+sum(a.value03) as value03,
+sum(a.value05) as value05,
+sum(a.value06) as value06,
+sum(a.value07) as value07
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '002'
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<!-- 移动用户融合率日报-->
+
+<select id="selctGrid5rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value03,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value01,0) value5,
+coalesce(b.value02,0) value6,
+to_char(coalesce(case when b.value01 &lt;&gt; 0 then b.value02*1.00*100/b.value01 else 0 end,0))||'%' value7,
+to_char(coalesce(case when b.value01 &lt;&gt; 0 and b.value05 &lt;&gt; 0 then b.value02*1.00*100/value01 - value06*1.00*100/value05 else 0 end,0))||'%' value8,
+to_char(coalesce(case when b.value01 &lt;&gt; 0 and b.value07 &lt;&gt; 0 then b.value02*1.00*100/value01 - value08*1.00*100/value07 else 0 end,0))||'%' value9
+from
+(select
+mx.EPARCHY_ID,
+sum(a.value01) as value01,
+sum(a.value02) as value02,
+sum(a.value03) as value03,
+sum(a.value04) as value04,
+sum(a.value05) as value05,
+sum(a.value06) as value06,
+sum(a.value07) as value07,
+sum(a.value08) as value08
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '001'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+</select>
+
+<select id="selctGrid5rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value03,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value01,0) value5,
+coalesce(b.value02,0) value6,
+to_char(coalesce(case when b.value01 &lt;&gt; 0 then b.value02*1.00*100/b.value01 else 0 end,0))||'%' value7,
+to_char(coalesce(case when b.value01 &lt;&gt; 0 and b.value05 &lt;&gt; 0 then b.value02*1.00*100/value01 - value06*1.00*100/value05 else 0 end,0))||'%' value8,
+to_char(coalesce(case when b.value01 &lt;&gt; 0 and b.value07 &lt;&gt; 0 then b.value02*1.00*100/value01 - value08*1.00*100/value07 else 0 end,0))||'%' value9
+from
+(select
+mx.city_code_new,
+sum(a.value01) as value01,
+sum(a.value02) as value02,
+sum(a.value03) as value03,
+sum(a.value04) as value04,
+sum(a.value05) as value05,
+sum(a.value06) as value06,
+sum(a.value07) as value07,
+sum(a.value08) as value08
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '001'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new 
+order by m.mms_order_id
+</select>
+
+<select id="selctGrid5rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value03,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value01,0) value5,
+coalesce(b.value02,0) value6,
+to_char(coalesce(case when b.value01 &lt;&gt; 0 then b.value02*1.00*100/b.value01 else 0 end,0))||'%' value7,
+to_char(coalesce(case when b.value01 &lt;&gt; 0 and b.value05 &lt;&gt; 0 then b.value02*1.00*100/value01 - value06*1.00*100/value05 else 0 end,0))||'%' value8,
+to_char(coalesce(case when b.value01 &lt;&gt; 0 and b.value07 &lt;&gt; 0 then b.value02*1.00*100/value01 - value08*1.00*100/value07 else 0 end,0))||'%' value9
+from
+(select
+mx.grid_section_code,
+sum(a.value01) as value01,
+sum(a.value02) as value02,
+sum(a.value03) as value03,
+sum(a.value04) as value04,
+sum(a.value05) as value05,
+sum(a.value06) as value06,
+sum(a.value07) as value07,
+sum(a.value08) as value08
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '001'
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code 
+</select>
+
+<select id="selctGrid5rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value03,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value01,0) value5,
+coalesce(b.value02,0) value6,
+to_char(coalesce(case when b.value01 &lt;&gt; 0 then b.value02*1.00*100/b.value01 else 0 end,0))||'%' value7,
+to_char(coalesce(case when b.value01 &lt;&gt; 0 and b.value05 &lt;&gt; 0 then b.value02*1.00*100/value01 - value06*1.00*100/value05 else 0 end,0))||'%' value8,
+to_char(coalesce(case when b.value01 &lt;&gt; 0 and b.value07 &lt;&gt; 0 then b.value02*1.00*100/value01 - value08*1.00*100/value07 else 0 end,0))||'%' value9
+from
+(select
+mx.grid_code,
+sum(a.value01) as value01,
+sum(a.value02) as value02,
+sum(a.value03) as value03,
+sum(a.value04) as value04,
+sum(a.value05) as value05,
+sum(a.value06) as value06,
+sum(a.value07) as value07,
+sum(a.value08) as value08
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '001'
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+
+
+<!-- 新发展客户日报 -->
+<select id="selctGrid8rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value03,0) value5,
+coalesce(b.value02,0)- coalesce(b.value03,0) value6,
+to_char(CAST(ROUND(coalesce(case when value03 &lt;&gt; 0 then (value02-value03)*1.00*100/value03 else 0 end,0),2) as numeric(31,2)))||'%' value7
+from
+(select
+mx.EPARCHY_ID,
+sum(case when cell_id = '004' then value01 else 0 end) as value01,
+sum(case when cell_id = '004' then value02 else 0 end) as value02,
+sum(case when cell_id = '004' then value03 else 0 end) as value03
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('004')
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID 
+order by m.mms_order_id
+</select>
+<select id="selctGrid8rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value03,0) value5,
+coalesce(b.value02,0)- coalesce(b.value03,0) value6,
+to_char(CAST(ROUND(coalesce(case when value03 &lt;&gt; 0 then (value02-value03)*1.00*100/value03 else 0 end,0),2) as numeric(31,2)))||'%' value7
+from
+(select
+mx.city_code_new,
+sum(case when cell_id = '004' then value01 else 0 end) as value01,
+sum(case when cell_id = '004' then value02 else 0 end) as value02,
+sum(case when cell_id = '004' then value03 else 0 end) as value03
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('004')
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new 
+order by m.mms_order_id
+</select>
+<select id="selctGrid8rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value03,0) value5,
+coalesce(b.value02,0)- coalesce(b.value03,0) value6,
+to_char(CAST(ROUND(coalesce(case when value03 &lt;&gt; 0 then (value02-value03)*1.00*100/value03 else 0 end,0),2) as numeric(31,2)))||'%' value7
+from
+(select
+mx.grid_section_code,
+sum(case when cell_id = '004' then value01 else 0 end) as value01,
+sum(case when cell_id = '004' then value02 else 0 end) as value02,
+sum(case when cell_id = '004' then value03 else 0 end) as value03
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('004')
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code 
+</select>
+<select id="selctGrid8rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value02,0) value4,
+coalesce(b.value03,0) value5,
+coalesce(b.value02,0)- coalesce(b.value03,0) value6,
+to_char(CAST(ROUND(coalesce(case when value03 &lt;&gt; 0 then (value02-value03)*1.00*100/value03 else 0 end,0),2) as numeric(31,2)))||'%' value7
+from
+(select
+mx.grid_code,
+sum(case when cell_id = '004' then value01 else 0 end) as value01,
+sum(case when cell_id = '004' then value02 else 0 end) as value02,
+sum(case when cell_id = '004' then value03 else 0 end) as value03
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('004')
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<!-- 通信客户净增日报 -->
+<select id="selctGrid9rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value11,0) value3,
+coalesce(b.value21,0) value4,
+coalesce(b.value31,0) value5,
+coalesce(b.value11-b.value12,0) value6,
+coalesce(b.value21-b.value22,0) value7,
+coalesce(b.value31-b.value32,0) value8,
+coalesce(b.value14,0) value9,
+coalesce(b.value24,0) value10,
+coalesce(b.value34,0) value11,
+coalesce(b.value16,0) value12,
+coalesce(b.value26,0) value13,
+coalesce(b.value36,0) value14,
+coalesce(b.value16-b.value17,0) value15,
+coalesce(b.value26-b.value27,0) value16,
+coalesce(b.value36-b.value37,0) value17,
+coalesce(b.value18,0) value18,
+coalesce(b.value28,0) value19,
+coalesce(b.value38,0) value20
+from
+(select
+mx.EPARCHY_ID,
+sum(value11) as value11,
+sum(value12) as value12,
+sum(value14) as value14,
+sum(value16) as value16,
+sum(value17) as value17,
+sum(value18) as value18,
+sum(value21) as value21,
+sum(value22) as value22,
+sum(value24) as value24,
+sum(value26) as value26,
+sum(value27) as value27,
+sum(value28) as value28,
+sum(value31) as value31,
+sum(value32) as value32,
+sum(value34) as value34,
+sum(value36) as value36,
+sum(value37) as value37,
+sum(value38) as value38
+
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '003'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID 
+order by m.mms_order_id
+</select>
+<select id="selctGrid9rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value11,0) value3,
+coalesce(b.value21,0) value4,
+coalesce(b.value31,0) value5,
+coalesce(b.value11-b.value12,0) value6,
+coalesce(b.value21-b.value22,0) value7,
+coalesce(b.value31-b.value32,0) value8,
+coalesce(b.value14,0) value9,
+coalesce(b.value24,0) value10,
+coalesce(b.value34,0) value11,
+coalesce(b.value16,0) value12,
+coalesce(b.value26,0) value13,
+coalesce(b.value36,0) value14,
+coalesce(b.value16-b.value17,0) value15,
+coalesce(b.value26-b.value27,0) value16,
+coalesce(b.value36-b.value37,0) value17,
+coalesce(b.value18,0) value18,
+coalesce(b.value28,0) value19,
+coalesce(b.value38,0) value20
+from
+(select
+mx.city_code_new,
+sum(value11) as value11,
+sum(value12) as value12,
+sum(value14) as value14,
+sum(value16) as value16,
+sum(value17) as value17,
+sum(value18) as value18,
+sum(value21) as value21,
+sum(value22) as value22,
+sum(value24) as value24,
+sum(value26) as value26,
+sum(value27) as value27,
+sum(value28) as value28,
+sum(value31) as value31,
+sum(value32) as value32,
+sum(value34) as value34,
+sum(value36) as value36,
+sum(value37) as value37,
+sum(value38) as value38
+
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '003'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new 
+order by m.mms_order_id
+</select>
+<select id="selctGrid9rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value11,0) value3,
+coalesce(b.value21,0) value4,
+coalesce(b.value31,0) value5,
+coalesce(b.value11-b.value12,0) value6,
+coalesce(b.value21-b.value22,0) value7,
+coalesce(b.value31-b.value32,0) value8,
+coalesce(b.value14,0) value9,
+coalesce(b.value24,0) value10,
+coalesce(b.value34,0) value11,
+coalesce(b.value16,0) value12,
+coalesce(b.value26,0) value13,
+coalesce(b.value36,0) value14,
+coalesce(b.value16-b.value17,0) value15,
+coalesce(b.value26-b.value27,0) value16,
+coalesce(b.value36-b.value37,0) value17,
+coalesce(b.value18,0) value18,
+coalesce(b.value28,0) value19,
+coalesce(b.value38,0) value20
+from
+(select
+mx.grid_section_code,
+sum(value11) as value11,
+sum(value12) as value12,
+sum(value14) as value14,
+sum(value16) as value16,
+sum(value17) as value17,
+sum(value18) as value18,
+sum(value21) as value21,
+sum(value22) as value22,
+sum(value24) as value24,
+sum(value26) as value26,
+sum(value27) as value27,
+sum(value28) as value28,
+sum(value31) as value31,
+sum(value32) as value32,
+sum(value34) as value34,
+sum(value36) as value36,
+sum(value37) as value37,
+sum(value38) as value38
+
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '003'
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code 
+
+</select>
+<select id="selctGrid9rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value11,0) value3,
+coalesce(b.value21,0) value4,
+coalesce(b.value31,0) value5,
+coalesce(b.value11-b.value12,0) value6,
+coalesce(b.value21-b.value22,0) value7,
+coalesce(b.value31-b.value32,0) value8,
+coalesce(b.value14,0) value9,
+coalesce(b.value24,0) value10,
+coalesce(b.value34,0) value11,
+coalesce(b.value16,0) value12,
+coalesce(b.value26,0) value13,
+coalesce(b.value36,0) value14,
+coalesce(b.value16-b.value17,0) value15,
+coalesce(b.value26-b.value27,0) value16,
+coalesce(b.value36-b.value37,0) value17,
+coalesce(b.value18,0) value18,
+coalesce(b.value28,0) value19,
+coalesce(b.value38,0) value20
+from
+(select
+mx.grid_code,
+sum(value11) as value11,
+sum(value12) as value12,
+sum(value14) as value14,
+sum(value16) as value16,
+sum(value17) as value17,
+sum(value18) as value18,
+sum(value21) as value21,
+sum(value22) as value22,
+sum(value24) as value24,
+sum(value26) as value26,
+sum(value27) as value27,
+sum(value28) as value28,
+sum(value31) as value31,
+sum(value32) as value32,
+sum(value34) as value34,
+sum(value36) as value36,
+sum(value37) as value37,
+sum(value38) as value38
+
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id = '003'
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code =#{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<!-- 市场占有率日报 -->
+<select id="selctGrid10rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value03,0) value4,
+coalesce(b.value02,0) value5,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 then value01*1.000*100/value04 else 0 end,0),2) as numeric(31,2)))||'%' value6,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 then value03*1.000*100/value04 else 0 end,0),2) as numeric(31,2)))||'%' value7,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 then value02*1.000*100/value04 else 0 end,0),2) as numeric(31,2)))||'%' value8,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value08 &lt;&gt; 0  then value01*1.000*100/value04 - value05*1.000*100/value08 else 0 end,0),2) as numeric(31,2)))||'%' value9,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value08 &lt;&gt; 0  then value03*1.000*100/value04 - value07*1.000*100/value08 else 0 end,0),2) as numeric(31,2)))||'%' value10,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value08 &lt;&gt; 0  then value02*1.000*100/value04 - value06*1.000*100/value08 else 0 end,0),2) as numeric(31,2)))||'%' value11,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value12 &lt;&gt; 0  then value01*1.000*100/value04 - value09*1.000*100/value12 else 0 end,0),2) as numeric(31,2)))||'%' value12,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value12 &lt;&gt; 0  then value03*1.000*100/value04 - value11*1.000*100/value12 else 0 end,0),2) as numeric(31,2)))||'%' value13,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value12 &lt;&gt; 0  then value02*1.000*100/value04 - value10*1.000*100/value12 else 0 end,0),2) as numeric(31,2)))||'%' value14
+from
+(select
+mx.EPARCHY_ID,
+sum(case when cell_id = '006' then value01 else 0 end) as value01,
+sum(case when cell_id = '006' then value02 else 0 end) as value02,
+sum(case when cell_id = '006' then value03 else 0 end) as value03,
+sum(case when cell_id = '006' then value04 else 0 end) as value04,
+
+sum(case when cell_id = '006' then value05 else 0 end) as value05,
+sum(case when cell_id = '006' then value06 else 0 end) as value06,
+sum(case when cell_id = '006' then value07 else 0 end) as value07,
+sum(case when cell_id = '006' then value08 else 0 end) as value08,
+
+sum(case when cell_id = '006' then value09 else 0 end) as value09,
+sum(case when cell_id = '006' then value10 else 0 end) as value10,
+sum(case when cell_id = '006' then value11 else 0 end) as value11,
+sum(case when cell_id = '006' then value12 else 0 end) as value12
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('006')
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID 
+order by m.mms_order_id
+
+</select>
+<select id="selctGrid10rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value03,0) value4,
+coalesce(b.value02,0) value5,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 then value01*1.000*100/value04 else 0 end,0),2) as numeric(31,2)))||'%' value6,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 then value03*1.000*100/value04 else 0 end,0),2) as numeric(31,2)))||'%' value7,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 then value02*1.000*100/value04 else 0 end,0),2) as numeric(31,2)))||'%' value8,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value08 &lt;&gt; 0  then value01*1.000*100/value04 - value05*1.000*100/value08 else 0 end,0),2) as numeric(31,2)))||'%' value9,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value08 &lt;&gt; 0  then value03*1.000*100/value04 - value07*1.000*100/value08 else 0 end,0),2) as numeric(31,2)))||'%' value10,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value08 &lt;&gt; 0  then value02*1.000*100/value04 - value06*1.000*100/value08 else 0 end,0),2) as numeric(31,2)))||'%' value11,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value12 &lt;&gt; 0  then value01*1.000*100/value04 - value09*1.000*100/value12 else 0 end,0),2) as numeric(31,2)))||'%' value12,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value12 &lt;&gt; 0  then value03*1.000*100/value04 - value11*1.000*100/value12 else 0 end,0),2) as numeric(31,2)))||'%' value13,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value12 &lt;&gt; 0  then value02*1.000*100/value04 - value10*1.000*100/value12 else 0 end,0),2) as numeric(31,2)))||'%' value14
+from
+(select
+mx.city_code_new,
+sum(case when cell_id = '006' then value01 else 0 end) as value01,
+sum(case when cell_id = '006' then value02 else 0 end) as value02,
+sum(case when cell_id = '006' then value03 else 0 end) as value03,
+sum(case when cell_id = '006' then value04 else 0 end) as value04,
+
+sum(case when cell_id = '006' then value05 else 0 end) as value05,
+sum(case when cell_id = '006' then value06 else 0 end) as value06,
+sum(case when cell_id = '006' then value07 else 0 end) as value07,
+sum(case when cell_id = '006' then value08 else 0 end) as value08,
+
+sum(case when cell_id = '006' then value09 else 0 end) as value09,
+sum(case when cell_id = '006' then value10 else 0 end) as value10,
+sum(case when cell_id = '006' then value11 else 0 end) as value11,
+sum(case when cell_id = '006' then value12 else 0 end) as value12
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('006')
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new 
+order by m.mms_order_id
+</select>
+<select id="selctGrid10rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value03,0) value4,
+coalesce(b.value02,0) value5,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 then value01*1.000*100/value04 else 0 end,0),2) as numeric(31,2)))||'%' value6,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 then value03*1.000*100/value04 else 0 end,0),2) as numeric(31,2)))||'%' value7,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 then value02*1.000*100/value04 else 0 end,0),2) as numeric(31,2)))||'%' value8,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value08 &lt;&gt; 0  then value01*1.000*100/value04 - value05*1.000*100/value08 else 0 end,0),2) as numeric(31,2)))||'%' value9,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value08 &lt;&gt; 0  then value03*1.000*100/value04 - value07*1.000*100/value08 else 0 end,0),2) as numeric(31,2)))||'%' value10,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value08 &lt;&gt; 0  then value02*1.000*100/value04 - value06*1.000*100/value08 else 0 end,0),2) as numeric(31,2)))||'%' value11,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value12 &lt;&gt; 0  then value01*1.000*100/value04 - value09*1.000*100/value12 else 0 end,0),2) as numeric(31,2)))||'%' value12,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value12 &lt;&gt; 0  then value03*1.000*100/value04 - value11*1.000*100/value12 else 0 end,0),2) as numeric(31,2)))||'%' value13,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value12 &lt;&gt; 0  then value02*1.000*100/value04 - value10*1.000*100/value12 else 0 end,0),2) as numeric(31,2)))||'%' value14
+from
+(select
+mx.grid_section_code,
+sum(case when cell_id = '006' then value01 else 0 end) as value01,
+sum(case when cell_id = '006' then value02 else 0 end) as value02,
+sum(case when cell_id = '006' then value03 else 0 end) as value03,
+sum(case when cell_id = '006' then value04 else 0 end) as value04,
+sum(case when cell_id = '006' then value05 else 0 end) as value05,
+sum(case when cell_id = '006' then value06 else 0 end) as value06,
+sum(case when cell_id = '006' then value07 else 0 end) as value07,
+sum(case when cell_id = '006' then value08 else 0 end) as value08,
+
+sum(case when cell_id = '006' then value09 else 0 end) as value09,
+sum(case when cell_id = '006' then value10 else 0 end) as value10,
+sum(case when cell_id = '006' then value11 else 0 end) as value11,
+sum(case when cell_id = '006' then value12 else 0 end) as value12
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('006')
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code 
+
+</select>
+<select id="selctGrid10rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value03,0) value4,
+coalesce(b.value02,0) value5,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 then value01*1.000*100/value04 else 0 end,0),2) as numeric(31,2)))||'%' value6,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 then value03*1.000*100/value04 else 0 end,0),2) as numeric(31,2)))||'%' value7,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 then value02*1.000*100/value04 else 0 end,0),2) as numeric(31,2)))||'%' value8,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value08 &lt;&gt; 0  then value01*1.000*100/value04 - value05*1.000*100/value08 else 0 end,0),2) as numeric(31,2)))||'%' value9,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value08 &lt;&gt; 0  then value03*1.000*100/value04 - value07*1.000*100/value08 else 0 end,0),2) as numeric(31,2)))||'%' value10,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value08 &lt;&gt; 0  then value02*1.000*100/value04 - value06*1.000*100/value08 else 0 end,0),2) as numeric(31,2)))||'%' value11,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value12 &lt;&gt; 0  then value01*1.000*100/value04 - value09*1.000*100/value12 else 0 end,0),2) as numeric(31,2)))||'%' value12,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value12 &lt;&gt; 0  then value03*1.000*100/value04 - value11*1.000*100/value12 else 0 end,0),2) as numeric(31,2)))||'%' value13,
+to_char(CAST(ROUND(coalesce(case when value04 &lt;&gt; 0 and value12 &lt;&gt; 0  then value02*1.000*100/value04 - value10*1.000*100/value12 else 0 end,0),2) as numeric(31,2)))||'%' value14
+from
+(select
+mx.grid_code,
+sum(case when cell_id = '006' then value01 else 0 end) as value01,
+sum(case when cell_id = '006' then value02 else 0 end) as value02,
+sum(case when cell_id = '006' then value03 else 0 end) as value03,
+sum(case when cell_id = '006' then value04 else 0 end) as value04,
+sum(case when cell_id = '006' then value05 else 0 end) as value05,
+sum(case when cell_id = '006' then value06 else 0 end) as value06,
+sum(case when cell_id = '006' then value07 else 0 end) as value07,
+sum(case when cell_id = '006' then value08 else 0 end) as value08,
+
+sum(case when cell_id = '006' then value09 else 0 end) as value09,
+sum(case when cell_id = '006' then value10 else 0 end) as value10,
+sum(case when cell_id = '006' then value11 else 0 end) as value11,
+sum(case when cell_id = '006' then value12 else 0 end) as value12
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('006')
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<!-- 话务量日报 -->
+<select id="selctGrid11rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0) value3,
+to_char(coalesce(case when value05 &lt;&gt; 0 then (value01-value05)*1.00*100/value05 else 0 end,0))||'%' value4,
+coalesce(b.value02,0) value5,
+to_char(coalesce(case when value03 &lt;&gt; 0 then (value02-value03)*1.00*100/value03 else 0 end,0))||'%' value6,
+to_char(coalesce(case when value04 &lt;&gt; 0 then (value02-value04)*1.00*100/value04 else 0 end,0))||'%' value7,
+coalesce(value06,0) value8,
+to_char(coalesce(case when value07 &lt;&gt; 0 then (value06-value07)*1.00*100/value07 else 0 end,0))||'%' value9
+from
+(select
+mx.EPARCHY_ID,
+sum(case when cell_id = '007' then value01 else 0 end) as value01,
+sum(case when cell_id = '007' then value02 else 0 end) as value02,
+sum(case when cell_id = '007' then value03 else 0 end) as value03,
+sum(case when cell_id = '007' then value04 else 0 end) as value04,
+
+sum(case when cell_id = '007' then value05 else 0 end) as value05,
+sum(case when cell_id = '007' then value06 else 0 end) as value06,
+sum(case when cell_id = '007' then value07 else 0 end) as value07,
+sum(case when cell_id = '007' then value08 else 0 end) as value08,
+
+sum(case when cell_id = '007' then value09 else 0 end) as value09,
+sum(case when cell_id = '007' then value10 else 0 end) as value10,
+sum(case when cell_id = '007' then value11 else 0 end) as value11,
+sum(case when cell_id = '007' then value12 else 0 end) as value12
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('007')
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+</select>
+<select id="selctGrid11rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0) value3,
+to_char(coalesce(case when value05 &lt;&gt; 0 then (value01-value05)*1.00*100/value05 else 0 end,0))||'%' value4,
+coalesce(b.value02,0) value5,
+to_char(coalesce(case when value03 &lt;&gt; 0 then (value02-value03)*1.00*100/value03 else 0 end,0))||'%' value6,
+to_char(coalesce(case when value04 &lt;&gt; 0 then (value02-value04)*1.00*100/value04 else 0 end,0))||'%' value7,
+coalesce(value06,0) value8,
+to_char(coalesce(case when value07 &lt;&gt; 0 then (value06-value07)*1.00*100/value07 else 0 end,0))||'%' value9
+from
+(select
+mx.city_code_new,
+sum(case when cell_id = '007' then value01 else 0 end) as value01,
+sum(case when cell_id = '007' then value02 else 0 end) as value02,
+sum(case when cell_id = '007' then value03 else 0 end) as value03,
+sum(case when cell_id = '007' then value04 else 0 end) as value04,
+
+sum(case when cell_id = '007' then value05 else 0 end) as value05,
+sum(case when cell_id = '007' then value06 else 0 end) as value06,
+sum(case when cell_id = '007' then value07 else 0 end) as value07,
+sum(case when cell_id = '007' then value08 else 0 end) as value08,
+
+sum(case when cell_id = '007' then value09 else 0 end) as value09,
+sum(case when cell_id = '007' then value10 else 0 end) as value10,
+sum(case when cell_id = '007' then value11 else 0 end) as value11,
+sum(case when cell_id = '007' then value12 else 0 end) as value12
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('007')
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new 
+order by m.mms_order_id
+</select>
+<select id="selctGrid11rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0) value3,
+to_char(coalesce(case when value05 &lt;&gt; 0 then (value01-value05)*1.00*100/value05 else 0 end,0))||'%' value4,
+coalesce(b.value02,0) value5,
+to_char(coalesce(case when value03 &lt;&gt; 0 then (value02-value03)*1.00*100/value03 else 0 end,0))||'%' value6,
+to_char(coalesce(case when value04 &lt;&gt; 0 then (value02-value04)*1.00*100/value04 else 0 end,0))||'%' value7,
+coalesce(value06,0) value8,
+to_char(coalesce(case when value07 &lt;&gt; 0 then (value06-value07)*1.00*100/value07 else 0 end,0))||'%' value9
+from
+(select
+mx.grid_section_code,
+sum(case when cell_id = '007' then value01 else 0 end) as value01,
+sum(case when cell_id = '007' then value02 else 0 end) as value02,
+sum(case when cell_id = '007' then value03 else 0 end) as value03,
+sum(case when cell_id = '007' then value04 else 0 end) as value04,
+
+sum(case when cell_id = '007' then value05 else 0 end) as value05,
+sum(case when cell_id = '007' then value06 else 0 end) as value06,
+sum(case when cell_id = '007' then value07 else 0 end) as value07,
+sum(case when cell_id = '007' then value08 else 0 end) as value08,
+
+sum(case when cell_id = '007' then value09 else 0 end) as value09,
+sum(case when cell_id = '007' then value10 else 0 end) as value10,
+sum(case when cell_id = '007' then value11 else 0 end) as value11,
+sum(case when cell_id = '007' then value12 else 0 end) as value12
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('007')
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code 
+
+</select>
+<select id="selctGrid11rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0) value3,
+to_char(coalesce(case when value05 &lt;&gt; 0 then (value01-value05)*1.00*100/value05 else 0 end,0))||'%' value4,
+coalesce(b.value02,0) value5,
+to_char(coalesce(case when value03 &lt;&gt; 0 then (value02-value03)*1.00*100/value03 else 0 end,0))||'%' value6,
+to_char(coalesce(case when value04 &lt;&gt; 0 then (value02-value04)*1.00*100/value04 else 0 end,0))||'%' value7,
+coalesce(value06,0) value8,
+to_char(coalesce(case when value07 &lt;&gt; 0 then (value06-value07)*1.00*100/value07 else 0 end,0))||'%' value9
+from
+(select
+mx.grid_code,
+sum(case when cell_id = '007' then value01 else 0 end) as value01,
+sum(case when cell_id = '007' then value02 else 0 end) as value02,
+sum(case when cell_id = '007' then value03 else 0 end) as value03,
+sum(case when cell_id = '007' then value04 else 0 end) as value04,
+
+sum(case when cell_id = '007' then value05 else 0 end) as value05,
+sum(case when cell_id = '007' then value06 else 0 end) as value06,
+sum(case when cell_id = '007' then value07 else 0 end) as value07,
+sum(case when cell_id = '007' then value08 else 0 end) as value08,
+
+sum(case when cell_id = '007' then value09 else 0 end) as value09,
+sum(case when cell_id = '007' then value10 else 0 end) as value10,
+sum(case when cell_id = '007' then value11 else 0 end) as value11,
+sum(case when cell_id = '007' then value12 else 0 end) as value12
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('007')
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<!-- 家庭V网日报 -->
+<select id="selctGrid12rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0) value3,
+to_char(coalesce(case when value03 &lt;&gt; 0 and value04 &lt;&gt;0 then (value01*1.00*100/value03 - value07*1.00*100/value04) else 0 end,0))||'%' value4,
+coalesce(b.value02,0) value5,
+to_char(coalesce(case when value03 &lt;&gt; 0 then value02*1.00*100/value03 else 0 end,0))||'%' value6,
+to_char(coalesce(case when value03 &lt;&gt; 0 and value05 &lt;&gt;0 then (value02*1.00*100/value03)-(value08*1.00*100/value05) else 0 end,0))||'%' value7,
+to_char(coalesce(case when value03 &lt;&gt; 0 and value06 &lt;&gt;0 then (value02*1.00*100/value03)-(value09*1.00*100/value06) else 0 end,0))||'%' value8
+from
+(select
+mx.EPARCHY_ID,
+sum(case when cell_id = '008' then value01 else 0 end) as value01,
+sum(case when cell_id = '008' then value02 else 0 end) as value02,
+sum(case when cell_id = '008' then value03 else 0 end) as value03,
+sum(case when cell_id = '008' then value04 else 0 end) as value04,
+
+sum(case when cell_id = '008' then value05 else 0 end) as value05,
+sum(case when cell_id = '008' then value06 else 0 end) as value06,
+sum(case when cell_id = '008' then value07 else 0 end) as value07,
+sum(case when cell_id = '008' then value08 else 0 end) as value08,
+
+sum(case when cell_id = '008' then value09 else 0 end) as value09,
+sum(case when cell_id = '008' then value10 else 0 end) as value10,
+sum(case when cell_id = '008' then value11 else 0 end) as value11,
+sum(case when cell_id = '008' then value12 else 0 end) as value12
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('008')
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+</select>
+<select id="selctGrid12rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0) value3,
+to_char(coalesce(case when value03 &lt;&gt; 0 and value04 &lt;&gt;0 then (value01*1.00*100/value03 - value07*1.00*100/value04) else 0 end,0))||'%' value4,
+coalesce(b.value02,0) value5,
+to_char(coalesce(case when value03 &lt;&gt; 0 then value02*1.00*100/value03 else 0 end,0))||'%' value6,
+to_char(coalesce(case when value03 &lt;&gt; 0 and value05 &lt;&gt;0 then (value02*1.00*100/value03)-(value08*1.00*100/value05) else 0 end,0))||'%' value7,
+to_char(coalesce(case when value03 &lt;&gt; 0 and value06 &lt;&gt;0 then (value02*1.00*100/value03)-(value09*1.00*100/value06) else 0 end,0))||'%' value8
+from
+(select
+mx.city_code_new,
+sum(case when cell_id = '008' then value01 else 0 end) as value01,
+sum(case when cell_id = '008' then value02 else 0 end) as value02,
+sum(case when cell_id = '008' then value03 else 0 end) as value03,
+sum(case when cell_id = '008' then value04 else 0 end) as value04,
+
+sum(case when cell_id = '008' then value05 else 0 end) as value05,
+sum(case when cell_id = '008' then value06 else 0 end) as value06,
+sum(case when cell_id = '008' then value07 else 0 end) as value07,
+sum(case when cell_id = '008' then value08 else 0 end) as value08,
+
+sum(case when cell_id = '008' then value09 else 0 end) as value09,
+sum(case when cell_id = '008' then value10 else 0 end) as value10,
+sum(case when cell_id = '008' then value11 else 0 end) as value11,
+sum(case when cell_id = '008' then value12 else 0 end) as value12
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('008')
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctGrid12rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0) value3,
+to_char(coalesce(case when value03 &lt;&gt; 0 and value04 &lt;&gt;0 then (value01*1.00*100/value03 - value07*1.00*100/value04) else 0 end,0))||'%' value4,
+coalesce(b.value02,0) value5,
+to_char(coalesce(case when value03 &lt;&gt; 0 then value02*1.00*100/value03 else 0 end,0))||'%' value6,
+to_char(coalesce(case when value03 &lt;&gt; 0 and value05 &lt;&gt;0 then (value02*1.00*100/value03)-(value08*1.00*100/value05) else 0 end,0))||'%' value7,
+to_char(coalesce(case when value03 &lt;&gt; 0 and value06 &lt;&gt;0 then (value02*1.00*100/value03)-(value09*1.00*100/value06) else 0 end,0))||'%' value8
+from
+(select
+mx.grid_section_code,
+sum(case when cell_id = '008' then value01 else 0 end) as value01,
+sum(case when cell_id = '008' then value02 else 0 end) as value02,
+sum(case when cell_id = '008' then value03 else 0 end) as value03,
+sum(case when cell_id = '008' then value04 else 0 end) as value04,
+
+sum(case when cell_id = '008' then value05 else 0 end) as value05,
+sum(case when cell_id = '008' then value06 else 0 end) as value06,
+sum(case when cell_id = '008' then value07 else 0 end) as value07,
+sum(case when cell_id = '008' then value08 else 0 end) as value08,
+
+sum(case when cell_id = '008' then value09 else 0 end) as value09,
+sum(case when cell_id = '008' then value10 else 0 end) as value10,
+sum(case when cell_id = '008' then value11 else 0 end) as value11,
+sum(case when cell_id = '008' then value12 else 0 end) as value12
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('008')
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code 
+
+</select>
+<select id="selctGrid12rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0) value3,
+to_char(coalesce(case when value03 &lt;&gt; 0 and value04 &lt;&gt;0 then (value01*1.00*100/value03 - value07*1.00*100/value04) else 0 end,0))||'%' value4,
+coalesce(b.value02,0) value5,
+to_char(coalesce(case when value03 &lt;&gt; 0 then value02*1.00*100/value03 else 0 end,0))||'%' value6,
+to_char(coalesce(case when value03 &lt;&gt; 0 and value05 &lt;&gt;0 then (value02*1.00*100/value03)-(value08*1.00*100/value05) else 0 end,0))||'%' value7,
+to_char(coalesce(case when value03 &lt;&gt; 0 and value06 &lt;&gt;0 then (value02*1.00*100/value03)-(value09*1.00*100/value06) else 0 end,0))||'%' value8
+from
+(select
+mx.grid_code,
+sum(case when cell_id = '008' then value01 else 0 end) as value01,
+sum(case when cell_id = '008' then value02 else 0 end) as value02,
+sum(case when cell_id = '008' then value03 else 0 end) as value03,
+sum(case when cell_id = '008' then value04 else 0 end) as value04,
+
+sum(case when cell_id = '008' then value05 else 0 end) as value05,
+sum(case when cell_id = '008' then value06 else 0 end) as value06,
+sum(case when cell_id = '008' then value07 else 0 end) as value07,
+sum(case when cell_id = '008' then value08 else 0 end) as value08,
+
+sum(case when cell_id = '008' then value09 else 0 end) as value09,
+sum(case when cell_id = '008' then value10 else 0 end) as value10,
+sum(case when cell_id = '008' then value11 else 0 end) as value11,
+sum(case when cell_id = '008' then value12 else 0 end) as value12
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'user' and a.cell_id in ('008')
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<!-- 通服权益包发展日报 -->
+<select id="selctGrid14rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value03,0) value4,
+coalesce(b.value04,0) value5,
+coalesce(b.value06,0) value6,
+coalesce(b.value08,0) value7,
+coalesce(b.value09,0) value8
+from
+(select
+mx.EPARCHY_ID,
+sum(value01) as value01,
+sum(value03) as value03,
+sum(value04) as value04,
+sum(value06) as value06,
+sum(value08) as value08,
+sum(value09) as value09
+from dnapp.tf_fact_gird_data_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'tfqyb' and a.cell_id = '001'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+</select>
+<select id="selctGrid14rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value03,0) value4,
+coalesce(b.value04,0) value5,
+coalesce(b.value06,0) value6,
+coalesce(b.value08,0) value7,
+coalesce(b.value09,0) value8
+from
+(select
+mx.city_code_new,
+sum(value01) as value01,
+sum(value03) as value03,
+sum(value04) as value04,
+sum(value06) as value06,
+sum(value08) as value08,
+sum(value09) as value09
+from dnapp.tf_fact_gird_data_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'tfqyb' and a.cell_id = '001'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new 
+order by m.mms_order_id
+</select>
+
+<select id="selctGrid14rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value03,0) value4,
+coalesce(b.value04,0) value5,
+coalesce(b.value06,0) value6,
+coalesce(b.value08,0) value7,
+coalesce(b.value09,0) value8
+from
+(select
+mx.grid_section_code,
+sum(value01) as value01,
+sum(value03) as value03,
+sum(value04) as value04,
+sum(value06) as value06,
+sum(value08) as value08,
+sum(value09) as value09
+from dnapp.tf_fact_gird_data_01_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'tfqyb' and a.cell_id = '001'
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code	
+</select>
+<select id="selctGrid14rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value03,0) value4,
+coalesce(b.value04,0) value5,
+coalesce(b.value06,0) value6,
+coalesce(b.value08,0) value7,
+coalesce(b.value09,0) value8
+from
+(select
+mx.grid_code,
+sum(value01) as value01,
+sum(value03) as value03,
+sum(value04) as value04,
+sum(value06) as value06,
+sum(value08) as value08,
+sum(value09) as value09
+from dnapp.tf_fact_gird_data_01_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'tfqyb' and a.cell_id = '001'
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<!-- 咪咕阅读发展日报 -->
+<select id="selctGrid15rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value03,0) value4,
+coalesce(b.value04,0) value5,
+coalesce(b.value06,0) value6,
+coalesce(b.value08,0) value7,
+coalesce(b.value09,0) value8
+from
+(select
+mx.EPARCHY_ID,
+sum(value01) as value01,
+sum(value03) as value03,
+sum(value04) as value04,
+sum(value06) as value06,
+sum(value08) as value08,
+sum(value09) as value09
+from dnapp.tf_fact_gird_data_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'migu' and a.cell_id = '001'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID 
+order by m.mms_order_id
+</select>
+<select id="selctGrid15rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value03,0) value4,
+coalesce(b.value04,0) value5,
+coalesce(b.value06,0) value6,
+coalesce(b.value08,0) value7,
+coalesce(b.value09,0) value8
+from
+(select
+mx.city_code_new,
+sum(value01) as value01,
+sum(value03) as value03,
+sum(value04) as value04,
+sum(value06) as value06,
+sum(value08) as value08,
+sum(value09) as value09
+from dnapp.tf_fact_gird_data_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'migu' and a.cell_id = '001'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctGrid15rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value03,0) value4,
+coalesce(b.value04,0) value5,
+coalesce(b.value06,0) value6,
+coalesce(b.value08,0) value7,
+coalesce(b.value09,0) value8
+from
+(select
+mx.grid_section_code,
+sum(value01) as value01,
+sum(value03) as value03,
+sum(value04) as value04,
+sum(value06) as value06,
+sum(value08) as value08,
+sum(value09) as value09
+from dnapp.tf_fact_gird_data_01_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'migu' and a.cell_id = '001'
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code 
+</select>
+<select id="selctGrid15rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value03,0) value4,
+coalesce(b.value04,0) value5,
+coalesce(b.value06,0) value6,
+coalesce(b.value08,0) value7,
+coalesce(b.value09,0) value8
+from
+(select
+mx.grid_code,
+sum(value01) as value01,
+sum(value03) as value03,
+sum(value04) as value04,
+sum(value06) as value06,
+sum(value08) as value08,
+sum(value09) as value09
+from dnapp.tf_fact_gird_data_01_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'migu' and a.cell_id = '001'
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<!-- 咪咕视频发展日报  -->
+<select id="selctGrid16rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value11,0) value3,
+coalesce(b.value13,0) value4,
+coalesce(b.value14,0) value5,
+coalesce(b.value16,0) value6,
+coalesce(b.value18,0) value7,
+coalesce(b.value19,0) value8
+from
+(select
+mx.EPARCHY_ID,
+sum(value11) as value11,
+sum(value13) as value13,
+sum(value14) as value14,
+sum(value16) as value16,
+sum(value18) as value18,
+sum(value19) as value19
+from dnapp.tf_fact_gird_data_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'migu' and a.cell_id = '001'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+</select>
+<select id="selctGrid16rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value11,0) value3,
+coalesce(b.value13,0) value4,
+coalesce(b.value14,0) value5,
+coalesce(b.value16,0) value6,
+coalesce(b.value18,0) value7,
+coalesce(b.value19,0) value8
+from
+(select
+mx.city_code_new,
+sum(value11) as value11,
+sum(value13) as value13,
+sum(value14) as value14,
+sum(value16) as value16,
+sum(value18) as value18,
+sum(value19) as value19
+from dnapp.tf_fact_gird_data_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'migu' and a.cell_id = '001'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctGrid16rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value11,0) value3,
+coalesce(b.value13,0) value4,
+coalesce(b.value14,0) value5,
+coalesce(b.value16,0) value6,
+coalesce(b.value18,0) value7,
+coalesce(b.value19,0) value8
+from
+(select
+mx.grid_section_code,
+sum(value11) as value11,
+sum(value13) as value13,
+sum(value14) as value14,
+sum(value16) as value16,
+sum(value18) as value18,
+sum(value19) as value19
+from dnapp.tf_fact_gird_data_01_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'migu' and a.cell_id = '001'
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code 
+</select>
+<select id="selctGrid16rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value11,0) value3,
+coalesce(b.value13,0) value4,
+coalesce(b.value14,0) value5,
+coalesce(b.value16,0) value6,
+coalesce(b.value18,0) value7,
+coalesce(b.value19,0) value8
+from
+(select
+mx.grid_code,
+sum(value11) as value11,
+sum(value13) as value13,
+sum(value14) as value14,
+sum(value16) as value16,
+sum(value18) as value18,
+sum(value19) as value19
+from dnapp.tf_fact_gird_data_01_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.base_rept_id = 'migu' and a.cell_id = '001'
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<!-- 净收入月报 -->
+<select id="selctGrid17rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+       m.EPARCHY_ID value1,		
+       m.EPARCHY_NAME value2			
+      ,coalesce(b.value01,0)/100 value3			
+      ,coalesce(b.value02,0)/100 value4			
+      ,coalesce(b.value03,0)/100 value5			
+      ,coalesce(b.value04,0)/100 value6			
+      ,coalesce(b.value05,0)/100 value7	
+      ,to_char(case when value07 &lt;&gt; 0 then (value05-value07)*1.00/100/value07 else 0 end)||'%' value8
+	  ,coalesce(b.value05-b.value08,0) value9
+	  ,coalesce(b.value06,0) value10	
+	  ,case when coalesce(b.value06,0)&lt;&gt;0 then coalesce(b.value05,0)*1.00/100/coalesce(b.value06,0) else 0 end value11				
+from			
+(select			
+       mx.eparchy_id,			
+       sum(a.value01) as value01,			
+       sum(a.value02) as value02,			
+       sum(a.value03) as value03,			
+       sum(a.value04) as value04,			
+       sum(a.value05) as value05,
+       sum(a.value06) as value06,
+       sum(a.value07) as value07,
+       sum(a.value08) as value08				
+ from dnapp.tf_fact_grid_market_01_mon a			
+ left outer join			
+ dwpdata.vw_citycode_rept mx			
+ on a.city_code = mx.city_code			
+ and mx.rept_290_tag = '1'			
+ where a.acyc_id = #{datetime}			
+ and a.base_rept_id = 'fee'			
+ and a.cell_id = '001'			
+ group by mx.eparchy_id			
+) b	
+right outer join		
+(SELECT DISTINCT EPARCHY_ID,EPARCHY_NAME,MMS_ORDER_ID FROM DWPDATA.VW_EPARCHY_CITY_REPT) m
+on b.EPARCHY_ID = m.EPARCHY_ID 
+order by m.mms_order_id	
+</select>
+<select id="selctGrid17rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+       m.city_code_new value1,		
+       m.city_name value2			
+      ,coalesce(b.value01,0)/100 value3			
+      ,coalesce(b.value02,0)/100 value4			
+      ,coalesce(b.value03,0)/100 value5			
+      ,coalesce(b.value04,0)/100 value6			
+      ,coalesce(b.value05,0)/100 value7	
+      ,to_char(case when value07 &lt;&gt; 0 then (value05-value07)*1.00/100/value07 else 0 end)||'%' value8
+	  ,coalesce(b.value05-b.value08,0) value9
+	  ,coalesce(b.value06,0) value10	
+	  ,case when coalesce(b.value06,0)&lt;&gt;0 then coalesce(b.value05,0)*1.00/100/coalesce(b.value06,0) else 0 end value11					
+from			
+(select			
+       mx.city_code_new,			
+       sum(a.value01) as value01,			
+       sum(a.value02) as value02,			
+       sum(a.value03) as value03,			
+       sum(a.value04) as value04,			
+       sum(a.value05) as value05,
+       sum(a.value06) as value06,
+       sum(a.value07) as value07,
+       sum(a.value08) as value08			
+ from dnapp.tf_fact_grid_market_01_mon a			
+ left outer join			
+ dwpdata.vw_citycode_rept mx			
+ on a.city_code = mx.city_code					
+ where a.acyc_id = #{datetime}			
+ and a.base_rept_id = 'fee'			
+ and a.cell_id = '001'			
+ group by mx.city_code_new			
+) b	
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctGrid17rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+       m.grid_section_code value1,		
+       m.grid_section_name value2			
+      ,coalesce(b.value01,0)/100 value3			
+      ,coalesce(b.value02,0)/100 value4			
+      ,coalesce(b.value03,0)/100 value5			
+      ,coalesce(b.value04,0)/100 value6			
+      ,coalesce(b.value05,0)/100 value7	
+      ,to_char(case when value07 &lt;&gt; 0 then (value05-value07)*1.00/100/value07 else 0 end)||'%' value8
+	  ,coalesce(b.value05-b.value08,0) value9
+	  ,coalesce(b.value06,0) value10	
+	  ,case when coalesce(b.value06,0)&lt;&gt;0 then coalesce(b.value05,0)*1.00/100/coalesce(b.value06,0) else 0 end value11							
+from			
+(select			
+       mx.grid_section_code,			
+       sum(a.value01) as value01,			
+       sum(a.value02) as value02,			
+       sum(a.value03) as value03,			
+       sum(a.value04) as value04,			
+       sum(a.value05) as value05,
+       sum(a.value06) as value06,
+       sum(a.value07) as value07,
+       sum(a.value08) as value08			
+ from dnapp.tf_fact_grid_market_01_mon a			
+ left outer join			
+ dwpdata.td_grid_section mx			
+ on a.grid_section_code = mx.grid_section_code						
+ where a.acyc_id = #{datetime}			
+ and a.base_rept_id = 'fee'			
+ and a.cell_id = '001'			
+ group by mx.grid_section_code			
+) b	
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where 
+city_code =  (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) ) m
+on b.grid_section_code = m.grid_section_code 
+order by m.grid_section_code
+</select>
+<select id="selctGrid17rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+       m.grid_code value1,		
+       m.grid_name value2			
+      ,coalesce(b.value01,0)/100 value3			
+      ,coalesce(b.value02,0)/100 value4			
+      ,coalesce(b.value03,0)/100 value5			
+      ,coalesce(b.value04,0)/100 value6			
+      ,coalesce(b.value05,0)/100 value7	
+      ,to_char(case when value07 &lt;&gt; 0 then (value05-value07)*1.00/100/value07 else 0 end)||'%' value8
+	  ,coalesce(b.value05-b.value08,0) value9
+	  ,coalesce(b.value06,0) value10	
+	  ,case when coalesce(b.value06,0)&lt;&gt;0 then coalesce(b.value05,0)*1.00/100/coalesce(b.value06,0) else 0 end value11							
+from			
+(select			
+       mx.grid_code,			
+       sum(a.value01) as value01,			
+       sum(a.value02) as value02,			
+       sum(a.value03) as value03,			
+       sum(a.value04) as value04,			
+       sum(a.value05) as value05,
+       sum(a.value06) as value06,
+       sum(a.value07) as value07,
+       sum(a.value08) as value08				
+ from dnapp.tf_fact_grid_market_01_mon a			
+ left outer join			
+ dwpdata.td_grid mx			
+ on a.grid_code = mx.grid_code			
+-- and mx.rept_290_tag = '1'			
+ where a.acyc_id = #{datetime}		
+ and a.base_rept_id = 'fee'			
+ and a.cell_id = '001'			
+ group by mx.grid_code			
+) b	
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+order by m.grid_code
+</select>
+
+
+<!-- 宽带客户发展日报 -->
+<select id="selctGrid18rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value02,0) value3,
+coalesce(b.value07,0) value4,
+coalesce(b.value08,0) value5,
+coalesce(b.value09,0) value6,
+case when b.value19 &lt;&gt; 0 then (b.value09-b.value19)*1.00/100/b.value19 else 0 end value7,
+coalesce(b.value10,0) value8,
+coalesce(b.value11,0) value9,
+coalesce(b.value12,0) value10
+from
+(select
+mx.EPARCHY_ID,
+sum(value02) as value02,
+sum(value07) as value07,
+sum(value08) as value08,
+sum(value09) as value09,
+sum(value10) as value10,
+sum(value11) as value11,
+sum(value12) as value12,
+sum(value19) as value19
+
+from dnapp.tf_fact_grid_adsl_data_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and a.adsl_rept_id = 'ADSL_REPT_01_1'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID 
+order by m.mms_order_id
+
+</select>
+<select id="selctGrid18rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value02,0) value3,
+coalesce(b.value07,0) value4,
+coalesce(b.value08,0) value5,
+coalesce(b.value09,0) value6,
+case when b.value19 &lt;&gt; 0 then (b.value09-b.value19)*1.00/100/b.value19 else 0 end value7,
+coalesce(b.value10,0) value8,
+coalesce(b.value11,0) value9,
+coalesce(b.value12,0) value10
+from
+(select
+mx.city_code_new,
+sum(value02) as value02,
+sum(value07) as value07,
+sum(value08) as value08,
+sum(value09) as value09,
+sum(value10) as value10,
+sum(value11) as value11,
+sum(value12) as value12,
+sum(value19) as value19
+from dnapp.tf_fact_grid_adsl_data_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and a.adsl_rept_id = 'ADSL_REPT_01'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new 
+order by m.mms_order_id
+</select>
+
+<select id="selctGrid18rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value02,0) value3,
+coalesce(b.value07,0) value4,
+coalesce(b.value08,0) value5,
+coalesce(b.value09,0) value6,
+case when b.value19 &lt;&gt; 0 then (b.value09-b.value19)*1.00/100/b.value19 else 0 end value7,
+coalesce(b.value10,0) value8,
+coalesce(b.value11,0) value9,
+coalesce(b.value12,0) value10
+from
+(select
+mx.grid_section_code,
+sum(value02) as value02,
+sum(value07) as value07,
+sum(value08) as value08,
+sum(value09) as value09,
+sum(value10) as value10,
+sum(value11) as value11,
+sum(value12) as value12,
+sum(value19) as value19
+from dnapp.tf_fact_grid_adsl_data_day a
+left outer join
+dwpdata.td_grid_section mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and a.adsl_rept_id = 'ADSL_REPT_01'
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code
+</select>
+
+<select id="selctGrid18rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value02,0) value3,
+coalesce(b.value07,0) value4,
+coalesce(b.value08,0) value5,
+coalesce(b.value09,0) value6,
+case when b.value19 &lt;&gt; 0 then (b.value09-b.value19)*1.00/100/b.value19 else 0 end value7,
+coalesce(b.value10,0) value8,
+coalesce(b.value11,0) value9,
+coalesce(b.value12,0) value10
+from
+(select
+mx.grid_code,
+sum(value02) as value02,
+sum(value07) as value07,
+sum(value08) as value08,
+sum(value09) as value09,
+sum(value10) as value10,
+sum(value11) as value11,
+sum(value12) as value12,
+sum(value19) as value19
+from dnapp.tf_fact_grid_adsl_data_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and a.adsl_rept_id = 'ADSL_REPT_01'
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<!-- 流量包发展日报 -->
+<select id="selctGrid19rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value05,0) value5,
+coalesce(b.value06,0) value6,
+to_char(case when value07 &lt;&gt; 0 then (value06-value07)*1.00/100/value07 else 0 end)||'%' value7,
+coalesce(b.value08,0) value8
+from
+(select
+mx.EPARCHY_ID,
+sum(value01) as value01,
+sum(value04) as value04,
+sum(value05) as value05,
+sum(value06) as value06,
+sum(value07) as value07,
+sum(value08) as value08
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and base_rept_id = 'llb' 
+and cell_id = '001'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID 
+order by m.mms_order_id
+
+</select>
+<select id="selctGrid19rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value05,0) value5,
+coalesce(b.value06,0) value6,
+to_char(case when value07 &lt;&gt; 0 then (value06-value07)*1.00/100/value07 else 0 end)||'%' value7,
+coalesce(b.value08,0) value8
+from
+(select
+mx.city_code_new,
+sum(value01) as value01,
+sum(value04) as value04,
+sum(value05) as value05,
+sum(value06) as value06,
+sum(value07) as value07,
+sum(value08) as value08
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and base_rept_id = 'llb' 
+and cell_id = '001'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new 
+order by m.mms_order_id
+</select>
+
+<select id="selctGrid19rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value05,0) value5,
+coalesce(b.value06,0) value6,
+to_char(case when value07 &lt;&gt; 0 then (value06-value07)*1.00/100/value07 else 0 end)||'%' value7,
+coalesce(b.value08,0) value8
+from
+(select
+mx.grid_section_code,
+sum(value01) as value01,
+sum(value04) as value04,
+sum(value05) as value05,
+sum(value06) as value06,
+sum(value07) as value07,
+sum(value08) as value08
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and base_rept_id = 'llb' 
+and cell_id = '001'
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code
+</select>
+
+<select id="selctGrid19rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value05,0) value5,
+coalesce(b.value06,0) value6,
+to_char(case when value07 &lt;&gt; 0 then (value06-value07)*1.00/100/value07 else 0 end)||'%' value7,
+coalesce(b.value08,0) value8
+from
+(select
+mx.grid_code,
+sum(value01) as value01,
+sum(value04) as value04,
+sum(value05) as value05,
+sum(value06) as value06,
+sum(value07) as value07,
+sum(value08) as value08
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and base_rept_id = 'llb' 
+and cell_id = '001'
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+
+<!--  V网发展日报（家庭V网+集团V网） -->
+<select id="selctGrid20rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value05,0) value5,
+coalesce(b.value06,0) value6,
+to_char(case when value07 &lt;&gt; 0 then (value06-value07)*1.00/100/value07 else 0 end)||'%' value7,
+coalesce(b.value08,0) value8
+from
+(select
+mx.EPARCHY_ID,
+sum(value01) as value01,
+sum(value04) as value04,
+sum(value05) as value05,
+sum(value06) as value06,
+sum(value07) as value07,
+sum(value08) as value08
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and base_rept_id = 'user' 
+and cell_id = '011'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID 
+order by m.mms_order_id
+</select>
+
+<select id="selctGrid20rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value05,0) value5,
+coalesce(b.value06,0) value6,
+to_char(case when value07 &lt;&gt; 0 then (value06-value07)*1.00/100/value07 else 0 end)||'%' value7,
+coalesce(b.value08,0) value8
+from
+(select
+mx.city_code_new,
+sum(value01) as value01,
+sum(value04) as value04,
+sum(value05) as value05,
+sum(value06) as value06,
+sum(value07) as value07,
+sum(value08) as value08
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and base_rept_id = 'user' 
+and cell_id = '011'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new 
+order by m.mms_order_id
+</select>
+
+<select id="selctGrid20rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value05,0) value5,
+coalesce(b.value06,0) value6,
+to_char(case when value07 &lt;&gt; 0 then (value06-value07)*1.00/100/value07 else 0 end)||'%' value7,
+coalesce(b.value08,0) value8
+from
+(select
+mx.grid_section_code,
+sum(value01) as value01,
+sum(value04) as value04,
+sum(value05) as value05,
+sum(value06) as value06,
+sum(value07) as value07,
+sum(value08) as value08
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and base_rept_id = 'user' 
+and cell_id = '011'
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code
+</select>
+<select id="selctGrid20rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value05,0) value5,
+coalesce(b.value06,0) value6,
+to_char(case when value07 &lt;&gt; 0 then (value06-value07)*1.00/100/value07 else 0 end)||'%' value7,
+coalesce(b.value08,0) value8
+from
+(select
+mx.grid_code,
+sum(value01) as value01,
+sum(value04) as value04,
+sum(value05) as value05,
+sum(value06) as value06,
+sum(value07) as value07,
+sum(value08) as value08
+from dnapp.tf_fact_gird_market_02_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and base_rept_id = 'user' 
+and cell_id = '011'
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+<!--  集团V网客户发展日报  -->
+<select id="selctGrid21rb1" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.EPARCHY_ID value1,
+m.EPARCHY_NAME value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value05,0) value5,
+coalesce(b.value06,0) value6,
+to_char(case when value07 &lt;&gt; 0 then (value06-value07)*1.00/100/value07 else 0 end)||'%' value7,
+coalesce(b.value08,0) value8
+from
+(select
+mx.EPARCHY_ID,
+sum(value01) as value01,
+sum(value04) as value04,
+sum(value05) as value05,
+sum(value06) as value06,
+sum(value07) as value07,
+sum(value08) as value08
+from dnapp.tf_fact_gird_group_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = #{datetime}
+and base_rept_id = 'user' 
+and cell_id = '001'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID 
+order by m.mms_order_id
+</select>
+<select id="selctGrid21rb2" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.city_code_new value1,
+m.city_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value05,0) value5,
+coalesce(b.value06,0) value6,
+to_char(case when value07 &lt;&gt; 0 then (value06-value07)*1.00/100/value07 else 0 end)||'%' value7,
+coalesce(b.value08,0) value8
+from
+(select
+mx.city_code_new,
+sum(value01) as value01,
+sum(value04) as value04,
+sum(value05) as value05,
+sum(value06) as value06,
+sum(value07) as value07,
+sum(value08) as value08
+from dnapp.tf_fact_gird_group_01_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = #{datetime}
+and base_rept_id = 'user' 
+and cell_id = '001'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new 
+order by m.mms_order_id
+</select>
+
+<select id="selctGrid21rb3" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value05,0) value5,
+coalesce(b.value06,0) value6,
+to_char(case when value07 &lt;&gt; 0 then (value06-value07)*1.00/100/value07 else 0 end)||'%' value7,
+coalesce(b.value08,0) value8
+from
+(select
+mx.grid_section_code,
+sum(value01) as value01,
+sum(value04) as value04,
+sum(value05) as value05,
+sum(value06) as value06,
+sum(value07) as value07,
+sum(value08) as value08
+from dnapp.tf_fact_gird_group_01_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_section_code = mx.grid_section_code
+where a.stat_date = #{datetime}
+and base_rept_id = 'user' 
+and cell_id = '001'
+group by mx.grid_section_code
+) b
+right outer join
+(select distinct grid_section_code,grid_section_name from dwpdata.td_grid_section where city_code = 
+ (select distinct city_code from dwpdata.vw_citycode_rept where city_code_new = #{unitcode}) )m
+on b.grid_section_code = m.grid_section_code
+</select>
+
+<select id="selctGrid21rb4" resultType="Kdgrid1" parameterType="java.util.Map">
+select
+m.grid_code value1,
+m.grid_name value2,
+coalesce(b.value01,0) value3,
+coalesce(b.value04,0) value4,
+coalesce(b.value05,0) value5,
+coalesce(b.value06,0) value6,
+to_char(case when value07 &lt;&gt; 0 then (value06-value07)*1.00/100/value07 else 0 end)||'%' value7,
+coalesce(b.value08,0) value8
+from
+(select
+mx.grid_code,
+sum(value01) as value01,
+sum(value04) as value04,
+sum(value05) as value05,
+sum(value06) as value06,
+sum(value07) as value07,
+sum(value08) as value08
+from dnapp.tf_fact_gird_group_01_day a
+left outer join
+dwpdata.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = #{datetime}
+and base_rept_id = 'user' 
+and cell_id = '001'
+group by mx.grid_code
+) b
+right outer join
+(select distinct grid_code,grid_name from dwpdata.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code 
+</select>
+
+</mapper>

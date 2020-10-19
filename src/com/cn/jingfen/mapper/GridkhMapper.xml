@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace的值为mapper接口的全路径 -->
+<mapper namespace="com.cn.jingfen.mapper.GridkhMapper">
+
+<!-- 集团关键人服务日报  -->
+
+<select id="selctkh1Grid1" resultType="Kdgrid1" parameterType="java.util.Map">
+
+select m.eparchy_id as value1,
+m.eparchy_name as value2,
+coalesce(value01,0) as value3,
+to_char(cast(coalesce(value02,0) as decimal(18,2)))||'%' as value4,
+coalesce(value04,0) as value5,
+to_char(cast(coalesce(value05,0) as decimal(18,2)))||'%' as value6,
+coalesce(value06,0) as value7,
+coalesce(value07,0) as value8 ,
+to_char(cast(coalesce(value08,0) as decimal(18,2)))||'%' as value9,
+coalesce(value09,0) as value10
+
+from (select mx.eparchy_id
+,sum(value01)                                                            as value01    -- 本月出账用户
+,case when sum(value02)&lt;&gt;0 then (sum(value01)/sum(value02)-1)*100.00 else 0 end   as value02    -- 环比变动(本月/上月-1)
+
+,sum(value04)                                                            as value04    -- 当月ARPU环比增长50%及以上的用户
+,case when sum(value01)&lt;&gt;0 then sum(value04)/sum(value01)*100.00 else 0 end     as value05    -- 占出账客户比例
+,sum(value06)                                                            as value06    -- 当月ARPU环比增长50%及以上的用户数(其中本月仍通信用户)
+
+,sum(value07)                                                            as value07    -- 当月ARPU环比下降50%及以上的用户
+,case when sum(value01)&lt;&gt;0 then sum(value07)/sum(value01)*100.00 else 0 end     as value08    -- 占出账客户比例
+,sum(value09)                                                            as value09    -- 当月ARPU环比下降50%及以上的用户数(其中本月仍通信用户)
+
+from  dnapp.tf_fee_unusual_cust_2295_mon  a
+left outer join dwpdata.vw_citycode_rept mx
+on substr(a.grid_section_code,1,4) = mx.city_code
+and rept_290_tag = '1'
+where a.acyc_id = #{datetime}
+group by mx.eparchy_id ) a
+right outer join dwpdata.vw_eparchy_city_rept m
+on a.eparchy_id = m.eparchy_id
+order by m.mms_order_id
+</select>
+<select id="selctkh1Grid2" resultType="Kdgrid1" parameterType="java.util.Map">
+select 
+m.city_code_new value1,
+m.city_name value2,
+coalesce(value01,0) as value3,
+to_char(cast(coalesce(value02,0) as decimal(18,2)))||'%' as value4,
+coalesce(value04,0) as value5,
+to_char(cast(coalesce(value05,0) as decimal(18,2)))||'%' as value6,
+coalesce(value06,0) as value7,
+coalesce(value07,0) as value8 ,
+to_char(cast(coalesce(value08,0) as decimal(18,2)))||'%' as value9,
+coalesce(value09,0) as value10
+
+from (select mx.CITY_CODE_NEW
+
+,sum(value01)                                                            as value01    -- 本月出账用户
+,case when sum(value02)&lt;&gt;0 then (sum(value01)/sum(value02)-1)*100.00 else 0 end   as value02    -- 环比变动(本月/上月-1)
+
+,sum(value04)                                                            as value04    -- 当月ARPU环比增长50%及以上的用户
+,case when sum(value01)&lt;&gt;0 then sum(value04)/sum(value01)*100.00 else 0 end     as value05    -- 占出账客户比例
+,sum(value06)                                                            as value06    -- 当月ARPU环比增长50%及以上的用户数(其中本月仍通信用户)
+
+,sum(value07)                                                            as value07    -- 当月ARPU环比下降50%及以上的用户
+,case when sum(value01)&lt;&gt;0 then sum(value07)/sum(value01)*100.00 else 0 end     as value08    -- 占出账客户比例
+,sum(value09)                                                            as value09    -- 当月ARPU环比下降50%及以上的用户数(其中本月仍通信用户)
+
+
+from  dnapp.tf_fee_unusual_cust_2295_mon  a
+left outer join dwpdata.vw_citycode_rept mx
+on substr( a.grid_section_code,1,4) = mx.city_code
+and rept_290_tag = '1'
+where a.acyc_id = #{datetime}
+group by mx.city_code_new ) a
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode} ) m
+on a.city_code_new = m.city_code_new  order by m.mms_order_id
+
+
+</select>
+<select id="selctkh1Grid3" resultType="Kdgrid1" parameterType="java.util.Map">
+
+select m.grid_section_code value1,
+m.grid_section_name value2,
+coalesce(value01,0) as value3,
+to_char(cast(coalesce(value02,0) as decimal(18,2)))||'%' as value4,
+coalesce(value04,0) as value5,
+to_char(cast(coalesce(value05,0) as decimal(18,2)))||'%' as value6,
+coalesce(value06,0) as value7,
+coalesce(value07,0) as value8 ,
+to_char(cast(coalesce(value08,0) as decimal(18,2)))||'%' as value9,
+coalesce(value09,0) as value10
+
+
+from (select mx.grid_section_code,  mx.city_code
+,sum(value01)                                                            as value01    -- 本月出账用户
+,case when sum(value02)&lt;&gt;0 then (sum(value01)/sum(value02)-1)*100.00 else 0 end   as value02    -- 环比变动(本月/上月-1)
+
+,sum(value04)                                                            as value04    -- 当月ARPU环比增长50%及以上的用户
+,case when sum(value01)&lt;&gt;0 then sum(value04)/sum(value01)*100.00 else 0 end     as value05    -- 占出账客户比例
+,sum(value06)                                                            as value06    -- 当月ARPU环比增长50%及以上的用户数(其中本月仍通信用户)
+
+,sum(value07)                                                            as value07    -- 当月ARPU环比下降50%及以上的用户
+,case when sum(value01)&lt;&gt;0 then sum(value07)/sum(value01)*100.00 else 0 end     as value08    -- 占出账客户比例
+,sum(value09)   as value09    -- 当月ARPU环比下降50%及以上的用户数(其中本月仍通信用户)
+
+from dnapp.tf_fee_unusual_cust_2295_mon a
+left outer join dwpmart.td_grid_section mx
+on substr( a.grid_section_code,1,7) = mx.grid_section_code
+where a.acyc_id = #{datetime}
+group by mx.grid_section_code,mx.city_code) b
+right outer join dwpmart.td_grid_section m
+on b.grid_section_code = m.grid_section_code
+and b.city_code=m.city_code
+where m.city_code=#{unitcode}
+order by m.grid_section_code
+</select>
+
+</mapper>

@@ -1,0 +1,1251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace的值为mapper接口的全路径 -->
+<mapper namespace="com.cn.jingfen.mapper.GridfwMapper">
+
+<!-- 集团关键人服务日报  -->
+<!-- mybasit 映射 -->
+<select id="selctfw1Grid1" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.EPARCHY_ID value1
+      ,m.EPARCHY_NAME value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,coalesce(b.value03,0) value5
+      ,coalesce(b.value04,0) value6
+      ,coalesce(b.value05,0) value7
+      ,coalesce(b.value06,0) value8
+      ,coalesce(b.value07,0) value9
+      ,coalesce(b.value08,0) value10
+      ,coalesce(b.value09,0) value11
+      ,coalesce(b.value10,0) value12
+      ,coalesce(b.value11,0) value13
+      ,coalesce(b.value12,0) value14
+      ,to_char(cast(coalesce(b.value13,0) as decimal(18,2)))||'%' value15
+      ,to_char(cast(coalesce(b.value14,0) as decimal(18,2)))||'%' value16
+      ,to_char(cast(coalesce(b.value15,0) as decimal(18,2)))||'%' value17
+      ,to_char(cast(coalesce(b.value16,0) as decimal(18,2)))||'%' value18
+      ,to_char(cast(coalesce(b.value17,0) as decimal(18,2)))||'%' value19
+from
+(
+select mx.EPARCHY_ID
+      ,sum(value03)  as value01 -- 已覆盖关键人-整体-语音
+      ,sum(value02)  as value02 -- 已覆盖关键人-整体-短信
+      ,sum(value01)  as value03 -- 已覆盖关键人-整体-10088
+      ,sum(value06)  as value04 -- 已覆盖关键人-其中：C类覆盖-语音
+      ,sum(value05)  as value05 -- 已覆盖关键人-其中：C类覆盖-短信
+      ,sum(value04)  as value06 -- 已覆盖关键人-其中：C类覆盖-10088
+      ,sum(value09)  as value07 -- 已覆盖关键人-其中：D类覆盖-语音
+      ,sum(value08)  as value08 -- 已覆盖关键人-其中：D类覆盖-短信
+      ,sum(value07)  as value09 -- 已覆盖关键人-其中：D类覆盖-10088
+      ,sum(value10)  as value10 -- 未覆盖关键人-整体
+      ,sum(value11)  as value11 -- 未覆盖关键人-其中C类
+      ,sum(value12)  as value12 -- 未覆盖关键人-其中D类
+      ,case when sum(value03+value02+value01+value10) &gt; 0 then sum(value03+value02+value01)*100.00/sum(value03+value02+value01+value10) else 0 end as value13  -- 覆盖率-整体
+      ,case when sum(value04+value05+value06+value11) &gt; 0 then sum(value04+value05+value06)*100.00/sum(value04+value05+value06+value11) else 0 end as value14  -- 覆盖率-其中C类-覆盖率
+      ,case when sum(value04+value05+value06+value11) &gt; 0 then sum(value06)*100.00/sum(value04+value05+value06+value11) else 0 end as value15   -- 覆盖率-其中C类-语音覆盖率
+      ,case when sum(value07+value08+value09+value12) &gt; 0 then sum(value07+value08+value09)*100.00/sum(value07+value08+value09+value12) else 0 end as value16  -- 覆盖率-其中D类-覆盖率
+      ,case when sum(value07+value08+value09+value12) &gt; 0 then sum(value09)*100.00/sum(value07+value08+value09+value12) else 0 end as value17   -- 覆盖率-其中D类-语音覆盖率  
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_01'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id      
+</select>
+<select id="selctfw1Grid2" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.city_code_new value1
+      ,m.city_name value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,coalesce(b.value03,0) value5
+      ,coalesce(b.value04,0) value6
+      ,coalesce(b.value05,0) value7
+      ,coalesce(b.value06,0) value8
+      ,coalesce(b.value07,0) value9
+      ,coalesce(b.value08,0) value10
+      ,coalesce(b.value09,0) value11
+      ,coalesce(b.value10,0) value12
+      ,coalesce(b.value11,0) value13
+      ,coalesce(b.value12,0) value14
+      ,to_char(cast(coalesce(b.value13,0) as decimal(18,2)))||'%' value15
+      ,to_char(cast(coalesce(b.value14,0) as decimal(18,2)))||'%' value16
+      ,to_char(cast(coalesce(b.value15,0) as decimal(18,2)))||'%' value17
+      ,to_char(cast(coalesce(b.value16,0) as decimal(18,2)))||'%' value18
+      ,to_char(cast(coalesce(b.value17,0) as decimal(18,2)))||'%' value19
+from
+(
+select mx.city_code_new
+      ,sum(value03)  as value01 -- 已覆盖关键人-整体-语音
+      ,sum(value02)  as value02 -- 已覆盖关键人-整体-短信
+      ,sum(value01)  as value03 -- 已覆盖关键人-整体-10088
+      ,sum(value06)  as value04 -- 已覆盖关键人-其中：C类覆盖-语音
+      ,sum(value05)  as value05 -- 已覆盖关键人-其中：C类覆盖-短信
+      ,sum(value04)  as value06 -- 已覆盖关键人-其中：C类覆盖-10088
+      ,sum(value09)  as value07 -- 已覆盖关键人-其中：D类覆盖-语音
+      ,sum(value08)  as value08 -- 已覆盖关键人-其中：D类覆盖-短信
+      ,sum(value07)  as value09 -- 已覆盖关键人-其中：D类覆盖-10088
+      ,sum(value10)  as value10 -- 未覆盖关键人-整体
+      ,sum(value11)  as value11 -- 未覆盖关键人-其中C类
+      ,sum(value12)  as value12 -- 未覆盖关键人-其中D类
+      ,case when sum(value03+value02+value01+value10) &gt; 0 then sum(value03+value02+value01)*100.00/sum(value03+value02+value01+value10) else 0 end as value13  -- 覆盖率-整体
+      ,case when sum(value04+value05+value06+value11) &gt; 0 then sum(value04+value05+value06)*100.00/sum(value04+value05+value06+value11) else 0 end as value14  -- 覆盖率-其中C类-覆盖率
+      ,case when sum(value04+value05+value06+value11) &gt; 0 then sum(value06)*100.00/sum(value04+value05+value06+value11) else 0 end as value15   -- 覆盖率-其中C类-语音覆盖率
+      ,case when sum(value07+value08+value09+value12) &gt; 0 then sum(value07+value08+value09)*100.00/sum(value07+value08+value09+value12) else 0 end as value16  -- 覆盖率-其中D类-覆盖率
+      ,case when sum(value07+value08+value09+value12) &gt; 0 then sum(value09)*100.00/sum(value07+value08+value09+value12) else 0 end as value17   -- 覆盖率-其中D类-语音覆盖率  
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_01'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+
+</select>
+<select id="selctfw1Grid3" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.grid_section_code value1
+      ,m.grid_section_name value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,coalesce(b.value03,0) value5
+      ,coalesce(b.value04,0) value6
+      ,coalesce(b.value05,0) value7
+      ,coalesce(b.value06,0) value8
+      ,coalesce(b.value07,0) value9
+      ,coalesce(b.value08,0) value10
+      ,coalesce(b.value09,0) value11
+      ,coalesce(b.value10,0) value12
+      ,coalesce(b.value11,0) value13
+      ,coalesce(b.value12,0) value14
+      ,to_char(cast(coalesce(b.value13,0) as decimal(18,2)))||'%' value15
+      ,to_char(cast(coalesce(b.value14,0) as decimal(18,2)))||'%' value16
+      ,to_char(cast(coalesce(b.value15,0) as decimal(18,2)))||'%' value17
+      ,to_char(cast(coalesce(b.value16,0) as decimal(18,2)))||'%' value18
+      ,to_char(cast(coalesce(b.value17,0) as decimal(18,2)))||'%' value19
+from
+(
+select mx.grid_section_code
+      ,sum(value03)  as value01 -- 已覆盖关键人-整体-语音
+      ,sum(value02)  as value02 -- 已覆盖关键人-整体-短信
+      ,sum(value01)  as value03 -- 已覆盖关键人-整体-10088
+      ,sum(value06)  as value04 -- 已覆盖关键人-其中：C类覆盖-语音
+      ,sum(value05)  as value05 -- 已覆盖关键人-其中：C类覆盖-短信
+      ,sum(value04)  as value06 -- 已覆盖关键人-其中：C类覆盖-10088
+      ,sum(value09)  as value07 -- 已覆盖关键人-其中：D类覆盖-语音
+      ,sum(value08)  as value08 -- 已覆盖关键人-其中：D类覆盖-短信
+      ,sum(value07)  as value09 -- 已覆盖关键人-其中：D类覆盖-10088
+      ,sum(value10)  as value10 -- 未覆盖关键人-整体
+      ,sum(value11)  as value11 -- 未覆盖关键人-其中C类
+      ,sum(value12)  as value12 -- 未覆盖关键人-其中D类
+      ,case when sum(value03+value02+value01+value10) &gt; 0 then sum(value03+value02+value01)*100.00/sum(value03+value02+value01+value10) else 0 end as value13  -- 覆盖率-整体
+      ,case when sum(value04+value05+value06+value11) &gt; 0 then sum(value04+value05+value06)*100.00/sum(value04+value05+value06+value11) else 0 end as value14  -- 覆盖率-其中C类-覆盖率
+      ,case when sum(value04+value05+value06+value11) &gt; 0 then sum(value06)*100.00/sum(value04+value05+value06+value11) else 0 end as value15   -- 覆盖率-其中C类-语音覆盖率
+      ,case when sum(value07+value08+value09+value12) &gt; 0 then sum(value07+value08+value09)*100.00/sum(value07+value08+value09+value12) else 0 end as value16  -- 覆盖率-其中D类-覆盖率
+      ,case when sum(value07+value08+value09+value12) &gt; 0 then sum(value09)*100.00/sum(value07+value08+value09+value12) else 0 end as value17   -- 覆盖率-其中D类-语音覆盖率  
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpmart.td_grid_section mx
+on a.section_code = mx.grid_section_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_01'
+group by mx.grid_section_code
+) b
+right outer join (select  a.grid_section_code,a.grid_section_name 
+                    from dwpmart.td_grid_section a
+                        ,dwpdata.vw_citycode_rept b
+                   where b.city_code_new = #{unitcode}
+                     and a.city_code = b.city_code
+                  ) m  
+on  b.grid_section_code = m.grid_section_code
+</select>
+
+<select id="selctfw1Grid4" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.grid_code value1
+      ,m.grid_name value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,coalesce(b.value03,0) value5
+      ,coalesce(b.value04,0) value6
+      ,coalesce(b.value05,0) value7
+      ,coalesce(b.value06,0) value8
+      ,coalesce(b.value07,0) value9
+      ,coalesce(b.value08,0) value10
+      ,coalesce(b.value09,0) value11
+      ,coalesce(b.value10,0) value12
+      ,coalesce(b.value11,0) value13
+      ,coalesce(b.value12,0) value14
+      ,to_char(cast(coalesce(b.value13,0) as decimal(18,2)))||'%' value15
+      ,to_char(cast(coalesce(b.value14,0) as decimal(18,2)))||'%' value16
+      ,to_char(cast(coalesce(b.value15,0) as decimal(18,2)))||'%' value17
+      ,to_char(cast(coalesce(b.value16,0) as decimal(18,2)))||'%' value18
+      ,to_char(cast(coalesce(b.value17,0) as decimal(18,2)))||'%' value19
+from
+(
+select mx.grid_code
+      ,sum(value03)  as value01 -- 已覆盖关键人-整体-语音
+      ,sum(value02)  as value02 -- 已覆盖关键人-整体-短信
+      ,sum(value01)  as value03 -- 已覆盖关键人-整体-10088
+      ,sum(value06)  as value04 -- 已覆盖关键人-其中：C类覆盖-语音
+      ,sum(value05)  as value05 -- 已覆盖关键人-其中：C类覆盖-短信
+      ,sum(value04)  as value06 -- 已覆盖关键人-其中：C类覆盖-10088
+      ,sum(value09)  as value07 -- 已覆盖关键人-其中：D类覆盖-语音
+      ,sum(value08)  as value08 -- 已覆盖关键人-其中：D类覆盖-短信
+      ,sum(value07)  as value09 -- 已覆盖关键人-其中：D类覆盖-10088
+      ,sum(value10)  as value10 -- 未覆盖关键人-整体
+      ,sum(value11)  as value11 -- 未覆盖关键人-其中C类
+      ,sum(value12)  as value12 -- 未覆盖关键人-其中D类
+      ,case when sum(value03+value02+value01+value10) &gt; 0 then sum(value03+value02+value01)*100.00/sum(value03+value02+value01+value10) else 0 end as value13  -- 覆盖率-整体
+      ,case when sum(value04+value05+value06+value11) &gt; 0 then sum(value04+value05+value06)*100.00/sum(value04+value05+value06+value11) else 0 end as value14  -- 覆盖率-其中C类-覆盖率
+      ,case when sum(value04+value05+value06+value11) &gt; 0 then sum(value06)*100.00/sum(value04+value05+value06+value11) else 0 end as value15   -- 覆盖率-其中C类-语音覆盖率
+      ,case when sum(value07+value08+value09+value12) &gt; 0 then sum(value07+value08+value09)*100.00/sum(value07+value08+value09+value12) else 0 end as value16  -- 覆盖率-其中D类-覆盖率
+      ,case when sum(value07+value08+value09+value12) &gt; 0 then sum(value09)*100.00/sum(value07+value08+value09+value12) else 0 end as value17   -- 覆盖率-其中D类-语音覆盖率  
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpmart.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_01'
+group by mx.grid_code
+) b
+right outer join (select distinct grid_code,grid_name from dwpmart.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code
+</select>
+
+<!--集团客户(网格内成员)服务日报-->
+<select id="selctfw2Grid1" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.EPARCHY_ID value1
+      ,m.EPARCHY_NAME value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,coalesce(b.value03,0) value5
+      ,coalesce(b.value04,0) value6
+      ,coalesce(b.value05,0) value7
+      ,coalesce(b.value06,0) value8
+      ,coalesce(b.value07,0) value9
+      ,coalesce(b.value08,0) value10
+      ,coalesce(b.value09,0) value11
+      ,coalesce(b.value10,0) value12
+      ,coalesce(b.value11,0) value13
+      ,coalesce(b.value12,0) value14
+      ,to_char(cast(coalesce(b.value13,0) as decimal(18,2)))||'%' value15
+      ,to_char(cast(coalesce(b.value14,0) as decimal(18,2)))||'%' value16
+      ,to_char(cast(coalesce(b.value15,0) as decimal(18,2)))||'%' value17
+      ,to_char(cast(coalesce(b.value16,0) as decimal(18,2)))||'%' value18
+      ,to_char(cast(coalesce(b.value17,0) as decimal(18,2)))||'%' value19
+from
+(
+select mx.EPARCHY_ID
+      ,sum(value03)  as value01 -- 已覆盖关键人-整体-语音
+      ,sum(value02)  as value02 -- 已覆盖关键人-整体-短信
+      ,sum(value01)  as value03 -- 已覆盖关键人-整体-10088
+      ,sum(value06)  as value04 -- 已覆盖关键人-其中：C类覆盖-语音
+      ,sum(value05)  as value05 -- 已覆盖关键人-其中：C类覆盖-短信
+      ,sum(value04)  as value06 -- 已覆盖关键人-其中：C类覆盖-10088
+      ,sum(value09)  as value07 -- 已覆盖关键人-其中：D类覆盖-语音
+      ,sum(value08)  as value08 -- 已覆盖关键人-其中：D类覆盖-短信
+      ,sum(value07)  as value09 -- 已覆盖关键人-其中：D类覆盖-10088
+      ,sum(value10)  as value10 -- 未覆盖关键人-整体
+      ,sum(value11)  as value11 -- 未覆盖关键人-其中C类
+      ,sum(value12)  as value12 -- 未覆盖关键人-其中D类
+      ,case when sum(value03+value02+value01+value10) &gt; 0 then sum(value03+value02+value01)*100.00/sum(value03+value02+value01+value10) else 0 end as value13  -- 覆盖率-整体
+      ,case when sum(value04+value05+value06+value11) &gt; 0 then sum(value04+value05+value06)*100.00/sum(value04+value05+value06+value11) else 0 end as value14  -- 覆盖率-其中C类-覆盖率
+      ,case when sum(value04+value05+value06+value11) &gt; 0 then sum(value06)*100.00/sum(value04+value05+value06+value11) else 0 end as value15   -- 覆盖率-其中C类-语音覆盖率
+      ,case when sum(value07+value08+value09+value12) &gt; 0 then sum(value07+value08+value09)*100.00/sum(value07+value08+value09+value12) else 0 end as value16  -- 覆盖率-其中D类-覆盖率
+      ,case when sum(value07+value08+value09+value12) &gt; 0 then sum(value09)*100.00/sum(value07+value08+value09+value12) else 0 end as value17   -- 覆盖率-其中D类-语音覆盖率  
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_02'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+</select>
+<select id="selctfw2Grid2" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.city_code_new value1
+      ,m.city_name value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,coalesce(b.value03,0) value5
+      ,coalesce(b.value04,0) value6
+      ,coalesce(b.value05,0) value7
+      ,coalesce(b.value06,0) value8
+      ,coalesce(b.value07,0) value9
+      ,coalesce(b.value08,0) value10
+      ,coalesce(b.value09,0) value11
+      ,coalesce(b.value10,0) value12
+      ,coalesce(b.value11,0) value13
+      ,coalesce(b.value12,0) value14
+      ,to_char(cast(coalesce(b.value13,0) as decimal(18,2)))||'%' value15
+      ,to_char(cast(coalesce(b.value14,0) as decimal(18,2)))||'%' value16
+      ,to_char(cast(coalesce(b.value15,0) as decimal(18,2)))||'%' value17
+      ,to_char(cast(coalesce(b.value16,0) as decimal(18,2)))||'%' value18
+      ,to_char(cast(coalesce(b.value17,0) as decimal(18,2)))||'%' value19
+from
+(
+select mx.city_code_new
+      ,sum(value03)  as value01 -- 已覆盖关键人-整体-语音
+      ,sum(value02)  as value02 -- 已覆盖关键人-整体-短信
+      ,sum(value01)  as value03 -- 已覆盖关键人-整体-10088
+      ,sum(value06)  as value04 -- 已覆盖关键人-其中：C类覆盖-语音
+      ,sum(value05)  as value05 -- 已覆盖关键人-其中：C类覆盖-短信
+      ,sum(value04)  as value06 -- 已覆盖关键人-其中：C类覆盖-10088
+      ,sum(value09)  as value07 -- 已覆盖关键人-其中：D类覆盖-语音
+      ,sum(value08)  as value08 -- 已覆盖关键人-其中：D类覆盖-短信
+      ,sum(value07)  as value09 -- 已覆盖关键人-其中：D类覆盖-10088
+      ,sum(value10)  as value10 -- 未覆盖关键人-整体
+      ,sum(value11)  as value11 -- 未覆盖关键人-其中C类
+      ,sum(value12)  as value12 -- 未覆盖关键人-其中D类
+      ,case when sum(value03+value02+value01+value10) &gt; 0 then sum(value03+value02+value01)*100.00/sum(value03+value02+value01+value10) else 0 end as value13  -- 覆盖率-整体
+      ,case when sum(value04+value05+value06+value11) &gt; 0 then sum(value04+value05+value06)*100.00/sum(value04+value05+value06+value11) else 0 end as value14  -- 覆盖率-其中C类-覆盖率
+      ,case when sum(value04+value05+value06+value11) &gt; 0 then sum(value06)*100.00/sum(value04+value05+value06+value11) else 0 end as value15   -- 覆盖率-其中C类-语音覆盖率
+      ,case when sum(value07+value08+value09+value12) &gt; 0 then sum(value07+value08+value09)*100.00/sum(value07+value08+value09+value12) else 0 end as value16  -- 覆盖率-其中D类-覆盖率
+      ,case when sum(value07+value08+value09+value12) &gt; 0 then sum(value09)*100.00/sum(value07+value08+value09+value12) else 0 end as value17   -- 覆盖率-其中D类-语音覆盖率  
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_02'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctfw2Grid3" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.grid_section_code value1
+      ,m.grid_section_name value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,coalesce(b.value03,0) value5
+      ,coalesce(b.value04,0) value6
+      ,coalesce(b.value05,0) value7
+      ,coalesce(b.value06,0) value8
+      ,coalesce(b.value07,0) value9
+      ,coalesce(b.value08,0) value10
+      ,coalesce(b.value09,0) value11
+      ,coalesce(b.value10,0) value12
+      ,coalesce(b.value11,0) value13
+      ,coalesce(b.value12,0) value14
+      ,to_char(cast(coalesce(b.value13,0) as decimal(18,2)))||'%' value15
+      ,to_char(cast(coalesce(b.value14,0) as decimal(18,2)))||'%' value16
+      ,to_char(cast(coalesce(b.value15,0) as decimal(18,2)))||'%' value17
+      ,to_char(cast(coalesce(b.value16,0) as decimal(18,2)))||'%' value18
+      ,to_char(cast(coalesce(b.value17,0) as decimal(18,2)))||'%' value19
+from
+(
+select mx.grid_section_code
+      ,sum(value03)  as value01 -- 已覆盖关键人-整体-语音
+      ,sum(value02)  as value02 -- 已覆盖关键人-整体-短信
+      ,sum(value01)  as value03 -- 已覆盖关键人-整体-10088
+      ,sum(value06)  as value04 -- 已覆盖关键人-其中：C类覆盖-语音
+      ,sum(value05)  as value05 -- 已覆盖关键人-其中：C类覆盖-短信
+      ,sum(value04)  as value06 -- 已覆盖关键人-其中：C类覆盖-10088
+      ,sum(value09)  as value07 -- 已覆盖关键人-其中：D类覆盖-语音
+      ,sum(value08)  as value08 -- 已覆盖关键人-其中：D类覆盖-短信
+      ,sum(value07)  as value09 -- 已覆盖关键人-其中：D类覆盖-10088
+      ,sum(value10)  as value10 -- 未覆盖关键人-整体
+      ,sum(value11)  as value11 -- 未覆盖关键人-其中C类
+      ,sum(value12)  as value12 -- 未覆盖关键人-其中D类
+      ,case when sum(value03+value02+value01+value10) &gt; 0 then sum(value03+value02+value01)*100.00/sum(value03+value02+value01+value10) else 0 end as value13  -- 覆盖率-整体
+      ,case when sum(value04+value05+value06+value11) &gt; 0 then sum(value04+value05+value06)*100.00/sum(value04+value05+value06+value11) else 0 end as value14  -- 覆盖率-其中C类-覆盖率
+      ,case when sum(value04+value05+value06+value11) &gt; 0 then sum(value06)*100.00/sum(value04+value05+value06+value11) else 0 end as value15   -- 覆盖率-其中C类-语音覆盖率
+      ,case when sum(value07+value08+value09+value12) &gt; 0 then sum(value07+value08+value09)*100.00/sum(value07+value08+value09+value12) else 0 end as value16  -- 覆盖率-其中D类-覆盖率
+      ,case when sum(value07+value08+value09+value12) &gt; 0 then sum(value09)*100.00/sum(value07+value08+value09+value12) else 0 end as value17   -- 覆盖率-其中D类-语音覆盖率  
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpmart.td_grid_section mx
+on a.section_code = mx.grid_section_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_02'
+group by mx.grid_section_code
+) b
+right outer join (select distinct a.grid_section_code,a.grid_section_name 
+                    from dwpmart.td_grid_section a
+                        ,dwpdata.vw_citycode_rept b
+                   where b.city_code_new = #{unitcode}
+                     and a.city_code = b.city_code
+                  ) m  
+on b.grid_section_code = m.grid_section_code
+</select>
+<select id="selctfw2Grid4" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.grid_code value1
+      ,m.grid_name value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,coalesce(b.value03,0) value5
+      ,coalesce(b.value04,0) value6
+      ,coalesce(b.value05,0) value7
+      ,coalesce(b.value06,0) value8
+      ,coalesce(b.value07,0) value9
+      ,coalesce(b.value08,0) value10
+      ,coalesce(b.value09,0) value11
+      ,coalesce(b.value10,0) value12
+      ,coalesce(b.value11,0) value13
+      ,coalesce(b.value12,0) value14
+      ,to_char(cast(coalesce(b.value13,0) as decimal(18,2)))||'%' value15
+      ,to_char(cast(coalesce(b.value14,0) as decimal(18,2)))||'%' value16
+      ,to_char(cast(coalesce(b.value15,0) as decimal(18,2)))||'%' value17
+      ,to_char(cast(coalesce(b.value16,0) as decimal(18,2)))||'%' value18
+      ,to_char(cast(coalesce(b.value17,0) as decimal(18,2)))||'%' value19
+from
+(
+select mx.grid_code
+      ,sum(value03)  as value01 -- 已覆盖关键人-整体-语音
+      ,sum(value02)  as value02 -- 已覆盖关键人-整体-短信
+      ,sum(value01)  as value03 -- 已覆盖关键人-整体-10088
+      ,sum(value06)  as value04 -- 已覆盖关键人-其中：C类覆盖-语音
+      ,sum(value05)  as value05 -- 已覆盖关键人-其中：C类覆盖-短信
+      ,sum(value04)  as value06 -- 已覆盖关键人-其中：C类覆盖-10088
+      ,sum(value09)  as value07 -- 已覆盖关键人-其中：D类覆盖-语音
+      ,sum(value08)  as value08 -- 已覆盖关键人-其中：D类覆盖-短信
+      ,sum(value07)  as value09 -- 已覆盖关键人-其中：D类覆盖-10088
+      ,sum(value10)  as value10 -- 未覆盖关键人-整体
+      ,sum(value11)  as value11 -- 未覆盖关键人-其中C类
+      ,sum(value12)  as value12 -- 未覆盖关键人-其中D类
+      ,case when sum(value03+value02+value01+value10) &gt; 0 then sum(value03+value02+value01)*100.00/sum(value03+value02+value01+value10) else 0 end as value13  -- 覆盖率-整体
+      ,case when sum(value04+value05+value06+value11) &gt; 0 then sum(value04+value05+value06)*100.00/sum(value04+value05+value06+value11) else 0 end as value14  -- 覆盖率-其中C类-覆盖率
+      ,case when sum(value04+value05+value06+value11) &gt; 0 then sum(value06)*100.00/sum(value04+value05+value06+value11) else 0 end as value15   -- 覆盖率-其中C类-语音覆盖率
+      ,case when sum(value07+value08+value09+value12) &gt; 0 then sum(value07+value08+value09)*100.00/sum(value07+value08+value09+value12) else 0 end as value16  -- 覆盖率-其中D类-覆盖率
+      ,case when sum(value07+value08+value09+value12) &gt; 0 then sum(value09)*100.00/sum(value07+value08+value09+value12) else 0 end as value17   -- 覆盖率-其中D类-语音覆盖率  
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpmart.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_02'
+group by mx.grid_code
+) b
+right outer join (select distinct grid_code,grid_name from dwpmart.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code
+</select>
+
+<!--客户投诉万名日报-->
+<select id="selctfw3Grid1" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.EPARCHY_ID value1
+      ,m.EPARCHY_NAME value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,coalesce(b.value03,0) value5
+      ,cast(coalesce(b.value04,0) as decimal(18,2)) value6
+from
+(
+select mx.EPARCHY_ID
+      ,sum(value01) value01   -- 投诉量
+      ,sum(value02) value02   -- 投诉客户
+      ,sum(value03) value03   -- 总客户数
+      ,case when sum(value03) = 0 then 0 else sum(value01)*10000.00/sum(value03) end as value04
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_04'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+</select>
+<select id="selctfw3Grid2" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.city_code_new value1
+      ,m.city_name value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,coalesce(b.value03,0) value5
+      ,cast(coalesce(b.value04,0) as decimal(18,2)) value6
+from
+(
+select mx.city_code_new
+      ,sum(value01) value01   -- 投诉量
+      ,sum(value02) value02   -- 投诉客户
+      ,sum(value03) value03   -- 总客户数
+      ,case when sum(value03) = 0 then 0 else sum(value01)*10000.00/sum(value03) end as value04
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_04'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctfw3Grid3" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.grid_section_code value1
+      ,m.grid_section_name value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,coalesce(b.value03,0) value5
+      ,cast(coalesce(b.value04,0) as decimal(18,2)) value6
+from
+(
+select mx.grid_section_code
+      ,sum(value01) value01   -- 投诉量
+      ,sum(value02) value02   -- 投诉客户
+      ,sum(value03) value03   -- 总客户数
+      ,case when sum(value03) = 0 then 0 else sum(value01)*10000.00/sum(value03) end as value04 
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpmart.td_grid_section mx
+on a.section_code = mx.grid_section_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_04'
+group by mx.grid_section_code
+) b
+right outer join (select distinct a.grid_section_code,a.grid_section_name 
+                    from dwpmart.td_grid_section a
+                        ,dwpdata.vw_citycode_rept b
+                   where b.city_code_new = #{unitcode}
+                     and a.city_code = b.city_code
+                  ) m  
+on b.grid_section_code = m.grid_section_code
+</select>
+<select id="selctfw3Grid4" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.grid_code value1
+      ,m.grid_name value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,coalesce(b.value03,0) value5
+      ,cast(coalesce(b.value04,0) as decimal(18,2)) value6
+from
+(
+select mx.grid_code
+      ,sum(value01) value01   -- 投诉量
+      ,sum(value02) value02   -- 投诉客户
+      ,sum(value03) value03   -- 总客户数
+      ,case when sum(value03) = 0 then 0 else sum(value01)*10000.00/sum(value03) end as value04 
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpmart.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_04'
+group by mx.grid_code
+) b
+right outer join (select distinct grid_code,grid_name from dwpmart.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code
+</select>
+
+<!-- 家庭客户集团H5短信评测日报 -->
+<select id="selctfw4Grid1" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.EPARCHY_ID value1
+      ,m.EPARCHY_NAME value2
+      ,coalesce(b.value01,0) value3
+      ,to_char(cast(coalesce(b.value02,0) as decimal(18,2)))||'%' value4
+      ,coalesce(b.value03,0) value5
+      ,coalesce(b.value04,0) value6
+      ,coalesce(b.value05,0) value7
+      ,coalesce(b.value06,0) value8
+      ,coalesce(b.value07,0) value9
+      ,coalesce(b.value08,0) value10
+      ,to_char(cast(coalesce(b.value09,0) as decimal(18,2)))||'%' value11
+      ,coalesce(b.value10,0) value12
+      ,coalesce(b.value11,0) value13
+      ,coalesce(b.value12,0) value14
+      ,coalesce(b.value13,0) value15
+      ,coalesce(b.value14,0) value16
+from
+(
+select mx.EPARCHY_ID
+      ,sum(a.value01) as value01 -- 装机参评人数(所有触发人数)
+      ,case when sum(a.value02) = 0 then 0.00
+            else sum(a.value01)*100.00/sum(a.value02)
+             end as value02 -- 装机参评率
+      ,case when sum(a.value01) = 0 then 0.00
+            else sum(a.value03*0.2 + a.value04*0.3 + a.value05*0.2 + a.value06*0.3 - a.value01)*100.00/(sum(a.value01)*9)
+             end as value03 -- 装机满意度
+      ,case when sum(a.value01) = 0 then 0.00
+            else (sum(a.value03) - sum(a.value01))*100.00/(sum(a.value01)*9) end as value04 -- 装机整体满意度
+      ,case when sum(a.value01) = 0 then 0.00
+            else (sum(a.value04) - sum(a.value01))*100.00/(sum(a.value01)*9) end as value05 -- 装机上门/响应及时性
+      ,case when sum(a.value01) = 0 then 0.00
+            else (sum(a.value05) - sum(a.value01))*100.00/(sum(a.value01)*9) end as value06 -- 装机故障解决专业性
+      ,case when sum(a.value01) = 0 then 0.00
+            else (sum(a.value06) - sum(a.value01))*100.00/(sum(a.value01)*9) end as value07 -- 装机维修/在线人员服务
+      -- 修障
+      ,sum(a.value07) as value08 -- 修障参评人数(所有触发人数)
+      ,case when sum(a.value08) = 0 then 0.00
+            else sum(a.value07)*100.00/sum(a.value08)
+             end as value09 -- 修障参评率
+      ,case when sum(a.value07) = 0 then 0.00
+            else sum(a.value09*0.2 + a.value10*0.3 + a.value11*0.2 + a.value12*0.3 - a.value07)*100.00/(sum(a.value07)*9)
+             end as value10 -- 修障满意度
+      ,case when sum(a.value07) = 0 then 0.00
+            else (sum(a.value09) - sum(a.value07))*100.00/(sum(a.value07)*9) end as value11 -- 修障整体满意度
+      ,case when sum(a.value07) = 0 then 0.00
+            else (sum(a.value10) - sum(a.value07))*100.00/(sum(a.value07)*9) end as value12 -- 修障上门/响应及时性
+      ,case when sum(a.value07) = 0 then 0.00
+            else (sum(a.value11) - sum(a.value07))*100.00/(sum(a.value07)*9) end as value13 -- 修障故障解决专业性
+      ,case when sum(a.value07) = 0 then 0.00
+            else (sum(a.value12) - sum(a.value07))*100.00/(sum(a.value07)*9) end as value14 -- 修障维修/在线人员服务
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_05'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+</select>
+<select id="selctfw4Grid2" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.city_code_new value1
+      ,m.city_name value2
+      ,coalesce(b.value01,0) value3
+      ,to_char(cast(coalesce(b.value02,0) as decimal(18,2)))||'%' value4
+      ,coalesce(b.value03,0) value5
+      ,coalesce(b.value04,0) value6
+      ,coalesce(b.value05,0) value7
+      ,coalesce(b.value06,0) value8
+      ,coalesce(b.value07,0) value9
+      ,coalesce(b.value08,0) value10
+      ,to_char(cast(coalesce(b.value09,0) as decimal(18,2)))||'%' value11
+      ,coalesce(b.value10,0) value12
+      ,coalesce(b.value11,0) value13
+      ,coalesce(b.value12,0) value14
+      ,coalesce(b.value13,0) value15
+      ,coalesce(b.value14,0) value16
+from
+(
+select mx.city_code_new
+      ,sum(a.value01) as value01 -- 装机参评人数(所有触发人数)
+      ,case when sum(a.value02) = 0 then 0.00
+            else sum(a.value01)*100.00/sum(a.value02)
+             end as value02 -- 装机参评率
+      ,case when sum(a.value01) = 0 then 0.00
+            else sum(a.value03*0.2 + a.value04*0.3 + a.value05*0.2 + a.value06*0.3 - a.value01)*100.00/(sum(a.value01)*9)
+             end as value03 -- 装机满意度
+      ,case when sum(a.value01) = 0 then 0.00
+            else (sum(a.value03) - sum(a.value01))*100.00/(sum(a.value01)*9) end as value04 -- 装机整体满意度
+      ,case when sum(a.value01) = 0 then 0.00
+            else (sum(a.value04) - sum(a.value01))*100.00/(sum(a.value01)*9) end as value05 -- 装机上门/响应及时性
+      ,case when sum(a.value01) = 0 then 0.00
+            else (sum(a.value05) - sum(a.value01))*100.00/(sum(a.value01)*9) end as value06 -- 装机故障解决专业性
+      ,case when sum(a.value01) = 0 then 0.00
+            else (sum(a.value06) - sum(a.value01))*100.00/(sum(a.value01)*9) end as value07 -- 装机维修/在线人员服务
+      -- 修障
+      ,sum(a.value07) as value08 -- 修障参评人数(所有触发人数)
+      ,case when sum(a.value08) = 0 then 0.00
+            else sum(a.value07)*100.00/sum(a.value08)
+             end as value09 -- 修障参评率
+      ,case when sum(a.value07) = 0 then 0.00
+            else sum(a.value09*0.2 + a.value10*0.3 + a.value11*0.2 + a.value12*0.3 - a.value07)*100.00/(sum(a.value07)*9)
+             end as value10 -- 修障满意度
+      ,case when sum(a.value07) = 0 then 0.00
+            else (sum(a.value09) - sum(a.value07))*100.00/(sum(a.value07)*9) end as value11 -- 修障整体满意度
+      ,case when sum(a.value07) = 0 then 0.00
+            else (sum(a.value10) - sum(a.value07))*100.00/(sum(a.value07)*9) end as value12 -- 修障上门/响应及时性
+      ,case when sum(a.value07) = 0 then 0.00
+            else (sum(a.value11) - sum(a.value07))*100.00/(sum(a.value07)*9) end as value13 -- 修障故障解决专业性
+      ,case when sum(a.value07) = 0 then 0.00
+            else (sum(a.value12) - sum(a.value07))*100.00/(sum(a.value07)*9) end as value14 -- 修障维修/在线人员服务  
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_05'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctfw4Grid3" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.grid_section_code value1
+      ,m.grid_section_name value2
+      ,coalesce(b.value01,0) value3
+      ,to_char(cast(coalesce(b.value02,0) as decimal(18,2)))||'%' value4
+      ,coalesce(b.value03,0) value5
+      ,coalesce(b.value04,0) value6
+      ,coalesce(b.value05,0) value7
+      ,coalesce(b.value06,0) value8
+      ,coalesce(b.value07,0) value9
+      ,coalesce(b.value08,0) value10
+      ,to_char(cast(coalesce(b.value09,0) as decimal(18,2)))||'%' value11
+      ,coalesce(b.value10,0) value12
+      ,coalesce(b.value11,0) value13
+      ,coalesce(b.value12,0) value14
+      ,coalesce(b.value13,0) value15
+      ,coalesce(b.value14,0) value16
+from
+(
+select mx.grid_section_code
+      ,sum(a.value01) as value01 -- 装机参评人数(所有触发人数)
+      ,case when sum(a.value02) = 0 then 0.00
+            else sum(a.value01)*100.00/sum(a.value02)
+             end as value02 -- 装机参评率
+      ,case when sum(a.value01) = 0 then 0.00
+            else sum(a.value03*0.2 + a.value04*0.3 + a.value05*0.2 + a.value06*0.3 - a.value01)*100.00/(sum(a.value01)*9)
+             end as value03 -- 装机满意度
+      ,case when sum(a.value01) = 0 then 0.00
+            else (sum(a.value03) - sum(a.value01))*100.00/(sum(a.value01)*9) end as value04 -- 装机整体满意度
+      ,case when sum(a.value01) = 0 then 0.00
+            else (sum(a.value04) - sum(a.value01))*100.00/(sum(a.value01)*9) end as value05 -- 装机上门/响应及时性
+      ,case when sum(a.value01) = 0 then 0.00
+            else (sum(a.value05) - sum(a.value01))*100.00/(sum(a.value01)*9) end as value06 -- 装机故障解决专业性
+      ,case when sum(a.value01) = 0 then 0.00
+            else (sum(a.value06) - sum(a.value01))*100.00/(sum(a.value01)*9) end as value07 -- 装机维修/在线人员服务
+      -- 修障
+      ,sum(a.value07) as value08 -- 修障参评人数(所有触发人数)
+      ,case when sum(a.value08) = 0 then 0.00
+            else sum(a.value07)*100.00/sum(a.value08)
+             end as value09 -- 修障参评率
+      ,case when sum(a.value07) = 0 then 0.00
+            else sum(a.value09*0.2 + a.value10*0.3 + a.value11*0.2 + a.value12*0.3 - a.value07)*100.00/(sum(a.value07)*9)
+             end as value10 -- 修障满意度
+      ,case when sum(a.value07) = 0 then 0.00
+            else (sum(a.value09) - sum(a.value07))*100.00/(sum(a.value07)*9) end as value11 -- 修障整体满意度
+      ,case when sum(a.value07) = 0 then 0.00
+            else (sum(a.value10) - sum(a.value07))*100.00/(sum(a.value07)*9) end as value12 -- 修障上门/响应及时性
+      ,case when sum(a.value07) = 0 then 0.00
+            else (sum(a.value11) - sum(a.value07))*100.00/(sum(a.value07)*9) end as value13 -- 修障故障解决专业性
+      ,case when sum(a.value07) = 0 then 0.00
+            else (sum(a.value12) - sum(a.value07))*100.00/(sum(a.value07)*9) end as value14 -- 修障维修/在线人员服务
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpmart.td_grid_section mx
+on a.section_code = mx.grid_section_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_05'
+group by mx.grid_section_code
+) b
+right outer join (select distinct a.grid_section_code,a.grid_section_name 
+                    from dwpmart.td_grid_section a
+                        ,dwpdata.vw_citycode_rept b
+                   where b.city_code_new = #{unitcode}
+                     and a.city_code = b.city_code
+                  ) m  
+on b.grid_section_code = m.grid_section_code 
+</select>
+<select id="selctfw4Grid4" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.grid_code value1
+      ,m.grid_name value2
+      ,coalesce(b.value01,0) value3
+      ,to_char(cast(coalesce(b.value02,0) as decimal(18,2)))||'%' value4
+      ,coalesce(b.value03,0) value5
+      ,coalesce(b.value04,0) value6
+      ,coalesce(b.value05,0) value7
+      ,coalesce(b.value06,0) value8
+      ,coalesce(b.value07,0) value9
+      ,coalesce(b.value08,0) value10
+      ,to_char(cast(coalesce(b.value09,0) as decimal(18,2)))||'%' value11
+      ,coalesce(b.value10,0) value12
+      ,coalesce(b.value11,0) value13
+      ,coalesce(b.value12,0) value14
+      ,coalesce(b.value13,0) value15
+      ,coalesce(b.value14,0) value16
+from
+(
+select mx.grid_code
+      ,sum(a.value01) as value01 -- 装机参评人数(所有触发人数)
+      ,case when sum(a.value02) = 0 then 0.00
+            else sum(a.value01)*100.00/sum(a.value02)
+             end as value02 -- 装机参评率
+      ,case when sum(a.value01) = 0 then 0.00
+            else sum(a.value03*0.2 + a.value04*0.3 + a.value05*0.2 + a.value06*0.3 - a.value01)*100.00/(sum(a.value01)*9)
+             end as value03 -- 装机满意度
+      ,case when sum(a.value01) = 0 then 0.00
+            else (sum(a.value03) - sum(a.value01))*100.00/(sum(a.value01)*9) end as value04 -- 装机整体满意度
+      ,case when sum(a.value01) = 0 then 0.00
+            else (sum(a.value04) - sum(a.value01))*100.00/(sum(a.value01)*9) end as value05 -- 装机上门/响应及时性
+      ,case when sum(a.value01) = 0 then 0.00
+            else (sum(a.value05) - sum(a.value01))*100.00/(sum(a.value01)*9) end as value06 -- 装机故障解决专业性
+      ,case when sum(a.value01) = 0 then 0.00
+            else (sum(a.value06) - sum(a.value01))*100.00/(sum(a.value01)*9) end as value07 -- 装机维修/在线人员服务
+      -- 修障
+      ,sum(a.value07) as value08 -- 修障参评人数(所有触发人数)
+      ,case when sum(a.value08) = 0 then 0.00
+            else sum(a.value07)*100.00/sum(a.value08)
+             end as value09 -- 修障参评率
+      ,case when sum(a.value07) = 0 then 0.00
+            else sum(a.value09*0.2 + a.value10*0.3 + a.value11*0.2 + a.value12*0.3 - a.value07)*100.00/(sum(a.value07)*9)
+             end as value10 -- 修障满意度
+      ,case when sum(a.value07) = 0 then 0.00
+            else (sum(a.value09) - sum(a.value07))*100.00/(sum(a.value07)*9) end as value11 -- 修障整体满意度
+      ,case when sum(a.value07) = 0 then 0.00
+            else (sum(a.value10) - sum(a.value07))*100.00/(sum(a.value07)*9) end as value12 -- 修障上门/响应及时性
+      ,case when sum(a.value07) = 0 then 0.00
+            else (sum(a.value11) - sum(a.value07))*100.00/(sum(a.value07)*9) end as value13 -- 修障故障解决专业性
+      ,case when sum(a.value07) = 0 then 0.00
+            else (sum(a.value12) - sum(a.value07))*100.00/(sum(a.value07)*9) end as value14 -- 修障维修/在线人员服务
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpmart.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_05'
+group by mx.grid_code
+) b
+right outer join (select distinct grid_code,grid_name from dwpmart.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code
+</select>
+
+<!-- 新装机宽带满意率日报 -->
+<select id="selctfw5Grid1" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.EPARCHY_ID value1
+      ,m.EPARCHY_NAME value2
+      ,to_char(cast(coalesce(b.value01,0) as decimal(18,2)))||'%'  value3
+      ,to_char(cast(coalesce(b.value02,0) as decimal(18,2)))||'%'  value4
+from
+(
+select mx.EPARCHY_ID
+      ,case when sum(value02) = 0 then 0 else sum(value01)*100.00/sum(value02) end as value01
+      ,case when sum(value01) = 0 then 0 else sum(value03)*100.00/sum(value01) end as value02
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_06'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+</select>
+<select id="selctfw5Grid2" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.city_code_new value1
+      ,m.city_name value2
+      ,to_char(cast(coalesce(b.value01,0) as decimal(18,2)))||'%'  value3
+      ,to_char(cast(coalesce(b.value02,0) as decimal(18,2)))||'%'  value4
+from
+(
+select mx.city_code_new
+      ,case when sum(value02) = 0 then 0 else sum(value01)*100.00/sum(value02) end as value01
+      ,case when sum(value01) = 0 then 0 else sum(value03)*100.00/sum(value01) end as value02
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_06'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctfw5Grid3" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.grid_section_code value1
+      ,m.grid_section_name value2
+      ,to_char(cast(coalesce(b.value01,0) as decimal(18,2)))||'%'  value3
+      ,to_char(cast(coalesce(b.value02,0) as decimal(18,2)))||'%'  value4
+from
+(
+select mx.grid_section_code
+      ,case when sum(value02) = 0 then 0 else sum(value01)*100.00/sum(value02) end as value01
+      ,case when sum(value01) = 0 then 0 else sum(value03)*100.00/sum(value01) end as value02
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpmart.td_grid_section mx
+on a.section_code = mx.grid_section_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_06'
+group by mx.grid_section_code
+) b
+right outer join (select distinct a.grid_section_code,a.grid_section_name 
+                    from dwpmart.td_grid_section a
+                        ,dwpdata.vw_citycode_rept b
+                   where b.city_code_new = #{unitcode}
+                     and a.city_code = b.city_code
+                  ) m  
+on b.grid_section_code = m.grid_section_code 
+</select>
+<select id="selctfw5Grid4" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.grid_code value1
+      ,m.grid_name value2
+      ,to_char(cast(coalesce(b.value01,0) as decimal(18,2)))||'%'  value3
+      ,to_char(cast(coalesce(b.value02,0) as decimal(18,2)))||'%'  value4
+from
+(
+select mx.grid_code
+      ,case when sum(value02) = 0 then 0 else sum(value01)*100.00/sum(value02) end as value01
+      ,case when sum(value01) = 0 then 0 else sum(value03)*100.00/sum(value01) end as value02
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpmart.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_06'
+group by mx.grid_code
+) b
+right outer join (select distinct grid_code,grid_name from dwpmart.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code
+</select>
+
+<!-- 支局NPS渠道触点日通报 -->
+<select id="selctfw6Grid1" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.EPARCHY_ID value1
+      ,m.EPARCHY_NAME value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,to_char(cast(coalesce(b.value03,0) as decimal(18,2)))||'%' value5
+      ,coalesce(b.value04,0) value6
+      ,coalesce(b.value05,0) value7
+      ,coalesce(b.value06,0) value8
+      ,coalesce(b.value07,0) value9
+      ,coalesce(b.value08,0) value10
+from
+(
+select mx.EPARCHY_ID
+      ,sum(value01) as value01  -- 下发调查量
+      ,sum(value02) as value02  -- 回复短信量
+      ,case when sum(value01) &gt; 0 then sum(value02)*100.00/sum(value01) else 0 end as value03  -- 参与率
+      ,sum(value03) as value04  -- 客户打分占比-10分
+      ,sum(value04) as value05  -- 客户打分占比-9分
+      ,sum(value05) as value06  -- 客户打分占比-1-8分
+      ,case when sum(value06)-sum(value02) &lt; 0 or sum(value02) = 0 then 0 else (sum(value06)-sum(value02))*1.00/(sum(value02)*9) end as value07 -- 满意度
+      ,sum(value07) as value08  -- 需修复客户数
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_03'
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+</select>
+<select id="selctfw6Grid2" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.city_code_new value1
+      ,m.city_name value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,to_char(cast(coalesce(b.value03,0) as decimal(18,2)))||'%' value5
+      ,coalesce(b.value04,0) value6
+      ,coalesce(b.value05,0) value7
+      ,coalesce(b.value06,0) value8
+      ,coalesce(b.value07,0) value9
+      ,coalesce(b.value08,0) value10
+from
+(
+select mx.city_code_new
+      ,sum(value01) as value01  -- 下发调查量
+      ,sum(value02) as value02  -- 回复短信量
+      ,case when sum(value01) &gt; 0 then sum(value02)*100.00/sum(value01) else 0 end as value03  -- 参与率
+      ,sum(value03) as value04  -- 客户打分占比-10分
+      ,sum(value04) as value05  -- 客户打分占比-9分
+      ,sum(value05) as value06  -- 客户打分占比-1-8分
+      ,case when sum(value06)-sum(value02) &lt; 0 or sum(value02) = 0 then 0 else (sum(value06)-sum(value02))*1.00/(sum(value02)*9) end as value07 -- 满意度
+      ,sum(value07) as value08  -- 需修复客户数
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_03'
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctfw6Grid3" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.grid_section_code value1
+      ,m.grid_section_name value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,to_char(cast(coalesce(b.value03,0) as decimal(18,2)))||'%' value5
+      ,coalesce(b.value04,0) value6
+      ,coalesce(b.value05,0) value7
+      ,coalesce(b.value06,0) value8
+      ,coalesce(b.value07,0) value9
+      ,coalesce(b.value08,0) value10
+from
+(
+select mx.grid_section_code
+      ,sum(value01) as value01  -- 下发调查量
+      ,sum(value02) as value02  -- 回复短信量
+      ,case when sum(value01) &gt; 0 then sum(value02)*100.00/sum(value01) else 0 end as value03  -- 参与率
+      ,sum(value03) as value04  -- 客户打分占比-10分
+      ,sum(value04) as value05  -- 客户打分占比-9分
+      ,sum(value05) as value06  -- 客户打分占比-1-8分
+      ,case when sum(value06)-sum(value02) &lt; 0 or sum(value02) = 0 then 0 else (sum(value06)-sum(value02))*1.00/(sum(value02)*9) end as value07 -- 满意度
+      ,sum(value07) as value08  -- 需修复客户数2
+from dnapp.tf_fact_rept_2020_1459_day a
+left outer join
+dwpmart.td_grid_section mx
+on a.section_code = mx.grid_section_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_03'
+group by mx.grid_section_code
+) b
+right outer join (select distinct a.grid_section_code,a.grid_section_name 
+                    from dwpmart.td_grid_section a
+                        ,dwpdata.vw_citycode_rept b
+                   where b.city_code_new = #{unitcode}
+                     and a.city_code = b.city_code
+                  ) m  
+on b.grid_section_code = m.grid_section_code
+</select>
+<select id="selctfw6Grid4" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.grid_code value1
+      ,m.grid_name value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,to_char(cast(coalesce(b.value03,0) as decimal(18,2)))||'%' value5
+      ,coalesce(b.value04,0) value6
+      ,coalesce(b.value05,0) value7
+      ,coalesce(b.value06,0) value8
+      ,coalesce(b.value07,0) value9
+      ,coalesce(b.value08,0) value10
+from
+(
+select mx.grid_code
+      ,sum(value01) as value01  -- 下发调查量
+      ,sum(value02) as value02  -- 回复短信量
+      ,case when sum(value01) &gt; 0 then sum(value02)*100.00/sum(value01) else 0 end as value03  -- 参与率
+      ,sum(value03) as value04  -- 客户打分占比-10分
+      ,sum(value04) as value05  -- 客户打分占比-9分
+      ,sum(value05) as value06  -- 客户打分占比-1-8分
+      ,case when sum(value06)-sum(value02) &lt; 0 or sum(value02) = 0 then 0 else (sum(value06)-sum(value02))*1.00/(sum(value02)*9) end as value07 -- 满意度
+      ,sum(value07) as value08  -- 需修复客户数
+from dnapp.tf_fact_rept_1459_mon a
+left outer join
+dwpmart.td_grid mx
+on a.grid_code = mx.grid_code
+where a.stat_date = to_date(#{datetime},'YYYY-MM-DD')
+and a.rept_id = '1459_03'
+group by mx.grid_code
+) b
+right outer join (select distinct grid_code,grid_name from dwpmart.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code
+</select>
+
+<!-- 网格不饱和客户资费月报 -->
+<select id="selctfw7Grid1" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.EPARCHY_ID value1
+      ,m.EPARCHY_NAME value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,coalesce(b.value03,0) value5
+      ,coalesce(b.value04,0) value6
+      ,to_char(cast(coalesce(b.value05,0) as decimal(18,2)))||'%' value7
+      ,coalesce(b.value06,0) value8
+      ,to_char(cast(coalesce(b.value07,0) as decimal(18,2)))||'%' value9
+      ,to_char(cast(coalesce(b.value08,0) as decimal(18,2)))||'%' value10
+      ,to_char(cast(coalesce(b.value09,0) as decimal(18,2)))||'%' value11
+      ,to_char(cast(coalesce(b.value10,0) as decimal(18,2)))||'%' value12
+      ,coalesce(b.value11,0) value13
+      ,to_char(cast(coalesce(b.value12,0) as decimal(18,2)))||'%' value14
+      ,coalesce(b.value13,0) value15
+      ,coalesce(b.value14,0) value16
+      ,to_char(cast(coalesce(b.value15,0) as decimal(18,2)))||'%' value17
+from
+(
+select mx.EPARCHY_ID
+      ,sum(a.value01) as value01 -- 通讯客户数
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value02)*1.00/sum(a.value01) end as value02 -- DOU
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value03)*1.00/sum(a.value01) end as value03 -- ARPU
+      ,sum(a.value04) as value04  -- 不饱和客户
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value04)*100.00/sum(a.value01) end as value05 -- 不饱和客户占比
+      ,sum(a.value05) as value06  -- 适配客户
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value05)*100.00/sum(a.value01) end as value07 -- 适配客户占比
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value06)*100.00/sum(a.value01) end as value08 -- 最近连续三个月不饱和客户占比
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value07)*100.00/sum(a.value01) end as value09 -- 流量超套但语音不饱和客户占比
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value08)*100.00/sum(a.value01) end as value10 -- 语音超套但流量不饱和客户占比
+      ,sum(a.value09) as value11  -- 超套客户
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value09)*100.00/sum(a.value01) end as value12 -- 超套客户占比
+      ,sum(a.value10) as value13  -- 手机上网收入
+      ,sum(a.value11) as value14  -- 超套餐外收入
+      ,case when sum(a.value10) = 0 then 0.00 else sum(a.value11)*100.00/sum(a.value10) end as value15 -- 超套收入占比
+from dnapp.tf_fact_rept_1459_mon a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+and mx.rept_290_tag = '1'
+where a.acyc_id = #{datetime}	
+group by mx.EPARCHY_ID
+) b
+right outer join
+(select distinct EPARCHY_ID,EPARCHY_NAME,mms_order_id from dwpdata.vw_eparchy_city_rept) m
+on b.EPARCHY_ID = m.EPARCHY_ID
+order by m.mms_order_id
+</select>
+<select id="selctfw7Grid2" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.city_code_new value1
+      ,m.city_name value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,coalesce(b.value03,0) value5
+      ,coalesce(b.value04,0) value6
+      ,to_char(cast(coalesce(b.value05,0) as decimal(18,2)))||'%' value7
+      ,coalesce(b.value06,0) value8
+      ,to_char(cast(coalesce(b.value07,0) as decimal(18,2)))||'%' value9
+      ,to_char(cast(coalesce(b.value08,0) as decimal(18,2)))||'%' value10
+      ,to_char(cast(coalesce(b.value09,0) as decimal(18,2)))||'%' value11
+      ,to_char(cast(coalesce(b.value10,0) as decimal(18,2)))||'%' value12
+      ,coalesce(b.value11,0) value13
+      ,to_char(cast(coalesce(b.value12,0) as decimal(18,2)))||'%' value14
+      ,coalesce(b.value13,0) value15
+      ,coalesce(b.value14,0) value16
+      ,to_char(cast(coalesce(b.value15,0) as decimal(18,2)))||'%' value17
+from
+(
+select mx.city_code_new
+      ,sum(a.value01) as value01 -- 通讯客户数
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value02)*1.00/sum(a.value01) end as value02 -- DOU
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value03)*1.00/sum(a.value01) end as value03 -- ARPU
+      ,sum(a.value04) as value04  -- 不饱和客户
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value04)*100.00/sum(a.value01) end as value05 -- 不饱和客户占比
+      ,sum(a.value05) as value06  -- 适配客户
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value05)*100.00/sum(a.value01) end as value07 -- 适配客户占比
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value06)*100.00/sum(a.value01) end as value08 -- 最近连续三个月不饱和客户占比
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value07)*100.00/sum(a.value01) end as value09 -- 流量超套但语音不饱和客户占比
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value08)*100.00/sum(a.value01) end as value10 -- 语音超套但流量不饱和客户占比
+      ,sum(a.value09) as value11  -- 超套客户
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value09)*100.00/sum(a.value01) end as value12 -- 超套客户占比
+      ,sum(a.value10) as value13  -- 手机上网收入
+      ,sum(a.value11) as value14  -- 超套餐外收入
+      ,case when sum(a.value10)=0 then 0.00 else sum(a.value11)*100.00/sum(a.value10) end as value15 -- 超套收入占比
+from dnapp.tf_fact_rept_1459_mon a
+left outer join
+dwpdata.vw_citycode_rept mx
+on a.city_code = mx.city_code
+where a.acyc_id = #{datetime}	
+group by mx.city_code_new
+) b
+right outer join
+(select distinct city_code_new,city_name,mms_order_id from dwpdata.vw_citycode_rept where eparchy_id_new = #{unitcode}) m
+on b.city_code_new = m.city_code_new
+order by m.mms_order_id
+</select>
+<select id="selctfw7Grid3" resultType="Kdgrid1" parameterType="java.util.Map">
+select m.grid_section_code value1
+      ,m.grid_section_name value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,coalesce(b.value03,0) value5
+      ,coalesce(b.value04,0) value6
+      ,to_char(cast(coalesce(b.value05,0) as decimal(18,2)))||'%' value7
+      ,coalesce(b.value06,0) value8
+      ,to_char(cast(coalesce(b.value07,0) as decimal(18,2)))||'%' value9
+      ,to_char(cast(coalesce(b.value08,0) as decimal(18,2)))||'%' value10
+      ,to_char(cast(coalesce(b.value09,0) as decimal(18,2)))||'%' value11
+      ,to_char(cast(coalesce(b.value10,0) as decimal(18,2)))||'%' value12
+      ,coalesce(b.value11,0) value13
+      ,to_char(cast(coalesce(b.value12,0) as decimal(18,2)))||'%' value14
+      ,coalesce(b.value13,0) value15
+      ,coalesce(b.value14,0) value16
+      ,to_char(cast(coalesce(b.value15,0) as decimal(18,2)))||'%' value17
+from
+(
+select mx.grid_section_code
+      ,sum(a.value01) as value01 -- 通讯客户数
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value02)*1.00/sum(a.value01) end as value02 -- DOU
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value03)*1.00/sum(a.value01) end as value03 -- ARPU
+      ,sum(a.value04) as value04  -- 不饱和客户
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value04)*100.00/sum(a.value01) end as value05 -- 不饱和客户占比
+      ,sum(a.value05) as value06  -- 适配客户
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value05)*100.00/sum(a.value01) end as value07 -- 适配客户占比
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value06)*100.00/sum(a.value01) end as value08 -- 最近连续三个月不饱和客户占比
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value07)*100.00/sum(a.value01) end as value09 -- 流量超套但语音不饱和客户占比
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value08)*100.00/sum(a.value01) end as value10 -- 语音超套但流量不饱和客户占比
+      ,sum(a.value09) as value11  -- 超套客户
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value09)*100.00/sum(a.value01) end as value12 -- 超套客户占比
+      ,sum(a.value10) as value13  -- 手机上网收入
+      ,sum(a.value11) as value14  -- 超套餐外收入
+      ,case when sum(a.value10)=0 then 0.00 else sum(a.value11)*100.00/sum(a.value10) end as value15 -- 超套收入占比
+from dnapp.tf_fact_rept_1459_mon a
+left outer join
+dwpmart.td_grid_section mx
+on a.section_code = mx.grid_section_code
+where a.acyc_id = #{datetime}	
+group by mx.grid_section_code
+) b
+right outer join (select distinct a.grid_section_code,a.grid_section_name 
+                    from dwpmart.td_grid_section a
+                        ,dwpdata.vw_citycode_rept b
+                   where b.city_code_new = #{unitcode}
+                     and a.city_code = b.city_code
+                  ) m  
+on b.grid_section_code = m.grid_section_code
+</select>
+<select id="selctfw7Grid4" resultType="Kdgrid1" parameterType="java.util.Map">
+
+select m.grid_code value1
+      ,m.grid_name value2
+      ,coalesce(b.value01,0) value3
+      ,coalesce(b.value02,0) value4
+      ,coalesce(b.value03,0) value5
+      ,coalesce(b.value04,0) value6
+      ,to_char(cast(coalesce(b.value05,0) as decimal(18,2)))||'%' value7
+      ,coalesce(b.value06,0) value8
+      ,to_char(cast(coalesce(b.value07,0) as decimal(18,2)))||'%' value9
+      ,to_char(cast(coalesce(b.value08,0) as decimal(18,2)))||'%' value10
+      ,to_char(cast(coalesce(b.value09,0) as decimal(18,2)))||'%' value11
+      ,to_char(cast(coalesce(b.value10,0) as decimal(18,2)))||'%' value12
+      ,coalesce(b.value11,0) value13
+      ,to_char(cast(coalesce(b.value12,0) as decimal(18,2)))||'%' value14
+      ,coalesce(b.value13,0) value15
+      ,coalesce(b.value14,0) value16
+      ,to_char(cast(coalesce(b.value15,0) as decimal(18,2)))||'%' value17
+from
+(
+select mx.grid_code
+      ,sum(a.value01) as value01 -- 通讯客户数
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value02)*1.00/sum(a.value01) end as value02 -- DOU
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value03)*1.00/sum(a.value01) end as value03 -- ARPU
+      ,sum(a.value04) as value04  -- 不饱和客户
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value04)*100.00/sum(a.value01) end as value05 -- 不饱和客户占比
+      ,sum(a.value05) as value06  -- 适配客户
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value05)*100.00/sum(a.value01) end as value07 -- 适配客户占比
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value06)*100.00/sum(a.value01) end as value08 -- 最近连续三个月不饱和客户占比
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value07)*100.00/sum(a.value01) end as value09 -- 流量超套但语音不饱和客户占比
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value08)*100.00/sum(a.value01) end as value10 -- 语音超套但流量不饱和客户占比
+      ,sum(a.value09) as value11  -- 超套客户
+      ,case when sum(a.value01) = 0 then 0.00 else sum(a.value09)*100.00/sum(a.value01) end as value12 -- 超套客户占比
+      ,sum(a.value10) as value13  -- 手机上网收入
+      ,sum(a.value11) as value14  -- 超套餐外收入
+      ,case when sum(a.value10)=0 then 0.00 else sum(a.value11)*100.00/sum(a.value10) end as value15 -- 超套收入占比
+from dnapp.tf_fact_rept_1459_mon a
+left outer join
+dwpmart.td_grid mx
+on a.grid_code = mx.grid_code
+where a.acyc_id = #{datetime}	
+group by mx.grid_code
+) b
+right outer join (select distinct grid_code,grid_name from dwpmart.td_grid where grid_section_code = #{unitcode}) m
+on b.grid_code = m.grid_code
+</select>
+
+</mapper>
